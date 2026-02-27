@@ -9,69 +9,63 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
-    //  SCRIPT V1.35
-    //  SETTINGS -- SETTINGS -- SETTINGS -- SETTINGS
-    //  SETTINGS -- SETTINGS -- SETTINGS -- SETTINGS
+    //  SCRIPT V2.0
 
+    var Settings = {
 
+        ShowConsoleLogs: false,             // show console logs
+        CopyPhoneNumRightClick: true,       // copy phone numbers to clipboard by right clicking them
+        CheckForAppTripsDefault: false,     // default option for highlighting app trips
+        AppTripsToggleButton: true,         // display the 'Check For App Trips' button
 
-    const consoleLogs = false; // show console logs (disable for performance)
+        HighlightTripsFrom: [               // whose trips to highlight in the dashboard
+            "Samuel Martinez",
+            "Nombre ejemplo",
+            "Nombre ejemplo",
+        ],
 
-    //  enable copying numbers with right click
-    const phoneCopy = true;
+        ButtonSoundPlayWhenNew: true,       // display the 'Ping NEW' button
+        SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
+        SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
+        SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
 
-    // name(s) for highlighting trips / rows
-    // syntax to add a name example: ["Samuel Martinez", "Santiago Martinez"]
-    var nameTrips = ["Samuel Martinez", "Otro usuario"];
+        SoundForNewTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0215%20-%20More%20Menu%20Stuff.mp3",
+        VolumeNewTrip: 0.06,                 // volume: 0 - 1 (e.g: 0.5, 0.1, 0.9)
 
-    var checkForAppTrips = false; // check for app passengers
-    const appTripsToggle = true; // ^^^ add button to toggle it
+        SoundForNewAppTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3",
+        VolumeNewAppTrip: 0.06,
 
-    // play a sound when a trip of yours toggles to "ARRIVED"
-    const playArrived = true;
+        SoundForArrivedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0210%20-%20Menu%20Selection.mp3",
+        VolumeArrivedTrip: 0.4,
 
-    // play a sound when your arrived trips toggle to "STARTED"
-    const playStarted = true;
+        SoundForStartedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0213%20-%20Unknown%20Menu%20Sound.mp3",
+        VolumeStartedTrip: 0.4,
 
-    // play a sound when a trip is "NEW"
-    var playNew = false;
-    const playNewIncludeBt = true; // add a button to toggle this in the dom
+        HighlightWhatsappTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
 
-    // sound to play when arrived - volume (0 - 1.0)
-    // placeholder sound: https://actions.google.com/sounds/v1/alarms/beep_short.ogg
-    const arrivedSound = new Audio("https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0210%20-%20Menu%20Selection.mp3");
-    arrivedSound.volume = 0.4;
+        // v2.0 options
 
-    // sound to play when arrived trip starts - volume (0 - 1.0)
-    const startedSound = new Audio("https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0213%20-%20Unknown%20Menu%20Sound.mp3");
-    startedSound.volume = 0.4;
+        NotificationWhenArrived: true,      // send desktop notification when a trip's arrived and window is unfocused
+        Always100Trips: true,               // always render 100 trips (uses dropdown button)
 
-    // sound to play when trips is new - volume (0 - 1.0)
-    // this alarm plays constantly
-    const newtripSound = new Audio("https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0215%20-%20More%20Menu%20Stuff.mp3");
-    newtripSound.volume = 0.1;
+    }
 
-    // sound to play when trips is new FOR APP PASSENGER TRIPS - volume (0 - 1.0)
-    // this alarm plays constantly
-    const newAppTripSound = new Audio("https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3");
-    newAppTripSound.volume = 0.1;
+    var nameTrips = Settings.HighlightTripsFrom;
 
-    // when having an open Whatsapp Chat, highlight a trip with the chat's number (if it exists)
-    const showOpenWspTrip = true;
+    const arrivedSound = new Audio(Settings.SoundForArrivedTrip);
+    arrivedSound.volume = Settings.VolumeArrivedTrip;
 
-    // enable book later notification system
-    const bookingSystem = false;
+    const startedSound = new Audio(Settings.SoundForStartedTrip);
+    startedSound.volume = Settings.VolumeStartedTrip;
 
-    // show button to fetch bookings
-    const bookingSysButton = false;
+    const newtripSound = new Audio(Settings.SoundForNewTrip);
+    newtripSound.volume = Settings.VolumeNewTrip;
 
-
-    //  SETTINGS -- SETTINGS -- SETTINGS -- SETTINGS
-    //  SETTINGS -- SETTINGS -- SETTINGS -- SETTINGS
-
+    const newAppTripSound = new Audio(Settings.SoundForNewAppTrip);
+    newAppTripSound.volume = Settings.VolumeNewAppTrip;
 
     // DATA
     const rootStyles = window.getComputedStyle(document.documentElement);
@@ -80,63 +74,75 @@
     var firstChecker = 0; //first checker
     var csscolour = null;
     const wspContQuery = ".flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1";
+    const warningIcon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxnIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Im0xMi41OTMgMjMuMjU4bC0uMDExLjAwMmwtLjA3MS4wMzVsLS4wMi4wMDRsLS4wMTQtLjAwNGwtLjA3MS0uMDM1cS0uMDE2LS4wMDUtLjAyNC4wMDVsLS4wMDQuMDFsLS4wMTcuNDI4bC4wMDUuMDJsLjAxLjAxM2wuMTA0LjA3NGwuMDE1LjAwNGwuMDEyLS4wMDRsLjEwNC0uMDc0bC4wMTItLjAxNmwuMDA0LS4wMTdsLS4wMTctLjQyN3EtLjAwNC0uMDE2LS4wMTctLjAxOG0uMjY1LS4xMTNsLS4wMTMuMDAybC0uMTg1LjA5M2wtLjAxLjAxbC0uMDAzLjAxMWwuMDE4LjQzbC4wMDUuMDEybC4wMDguMDA3bC4yMDEuMDkzcS4wMTkuMDA1LjAyOS0uMDA4bC4wMDQtLjAxNGwtLjAzNC0uNjE0cS0uMDA1LS4wMTgtLjAyLS4wMjJtLS43MTUuMDAyYS4wMi4wMiAwIDAgMC0uMDI3LjAwNmwtLjAwNi4wMTRsLS4wMzQuNjE0cS4wMDEuMDE4LjAxNy4wMjRsLjAxNS0uMDAybC4yMDEtLjA5M2wuMDEtLjAwOGwuMDA0LS4wMTFsLjAxNy0uNDNsLS4wMDMtLjAxMmwtLjAxLS4wMXoiLz48cGF0aCBmaWxsPSIjNjVhMzBkIiBkPSJNMTIgMmM1LjUyMyAwIDEwIDQuNDc3IDEwIDEwcy00LjQ3NyAxMC0xMCAxMFMyIDE3LjUyMyAyIDEyUzYuNDc3IDIgMTIgMm0wIDEzYTEgMSAwIDEgMCAwIDJhMSAxIDAgMCAwIDAtMm0wLTlhMSAxIDAgMCAwLS45OTMuODgzTDExIDd2NmExIDEgMCAwIDAgMS45OTMuMTE3TDEzIDEzVjdhMSAxIDAgMCAwLTEtMSIvPjwvZz48L3N2Zz4="
+    var tabFocused = false;
 
-    if (bookingSystem) {
-        var bookingInfoCont = null;
-        var bookingInfoText = null;
-        var fetcherBT = null
-    }
+    document.addEventListener("visibilitychange", () => {
+        tabFocused = !document.hidden;
+    });
 
-    /* Example of how a entry in booking array looks like:
-        {
-            time: "5:40:00 AM",
-            username: "Vicky",
-            number: "16314153364",
-            pickup: "43 Voorhis Dr, Brentwood, Nueva York, EE. UU.",
-            by: "Samuel Martinez"
-        }
-    */
-    var bookingArray = [];
+    window.addEventListener("blur", () => {
+        tabFocused = false;
+    });
+
+    window.addEventListener("focus", () => {
+        tabFocused = true;
+    });
 
 
-    if (!consoleLogs) {
+    if (!Settings.ShowConsoleLogs) {
         console.log("-- disabling console logs --");
         const originalConsoleLog = console.log;
-        console.log = function() {};
+        console.log = function () { };
+    }
+
+    if (Settings.HighlightWhatsappTrip) {
+        highlightWhatsapp();
+        setInterval(highlightWhatsapp, 200)
     }
 
     createSettingButtons();
     highlightRowBySpan();
     setInterval(highlightRowBySpan, 1000);
 
-    if (showOpenWspTrip) {
-        highlightWhatsapp();
-        setInterval(highlightWhatsapp, 200)
+    if (Settings.Always100Trips) {
+        const TRIPS_URL = "https://nubeli-cash.firebaseapp.com/dashboard-beta";
+        setInterval(() => {
+
+            if (window.location.href !== TRIPS_URL) return;
+
+            const allDropdowns = document.querySelectorAll('[data-pc-name="dropdown"]');
+
+            allDropdowns.forEach((dropdown) => {
+                const label = dropdown.querySelector('.p-dropdown-label');
+
+                // Only target the one currently showing "20"
+                if (label && label.textContent.trim() === "20") {
+                    const trigger = dropdown.querySelector('.p-dropdown-trigger');
+
+                    if (trigger) {
+                        // 1. Open the menu
+                        trigger.click();
+
+                        // 2. Immediate micro-task to click the option
+                        setTimeout(() => {
+                            const options = document.querySelectorAll('.p-dropdown-item');
+                            const targetOption = Array.from(options).find(opt => opt.textContent.trim() === "100");
+
+                            if (targetOption) {
+                                targetOption.click(); // This triggers the framework's internal filter
+                                console.log("Internal filter forced to 100");
+                            } else {
+                                // If 100 isn't found, close it so it doesn't stay open
+                                trigger.click();
+                            }
+                        }, 10); // 10ms is invisible to the human eye but enough for the DOM
+                    }
+                }
+            });
+        }, 5000); // Check every 3 seconds
     }
 
-
-    function bookingSystemFunc(task) {
-        if (task == "fetch") {
-            bookingInfoText.textContent = "Fetching bookings...";
-            fetcherBT.innerText = "Fetching..."
-
-            const newBookings = document.querySelectorAll('tr[role="row"]:has(.p-tag.p-component.p-tag-warning)');
-
-            fetcherBT.innerText = "Fetched " + newBookings.length;
-
-            if (newBookings.length > 0) {
-
-                const testing = newBookings[0].querySelectorAll("span");
-                const testing2 = newBookings[0].querySelectorAll("td")
-                bookingInfoText.textContent = testing;
-                console.log(testing2);
-                console.log("THE CONTENT IS "+testing2[2].textContent)
-
-                newBookings.forEach(element => {
-                })
-            }
-        }
-    }
 
     function highlightWhatsapp() {
         const wspCont = document.querySelector(wspContQuery);
@@ -199,12 +205,12 @@
                             //console.log("Trip is: "+ tripTag.textContent +", Firstchecker: "+ firstChecker);
                         } else if (tripTag.textContent == "NEW") {
 
-                            if (playNew && userString !== "App Passenger") {
+                            if (Settings.SoundPlayWhenNew && userString !== "App Passenger") {
                                 newtripSound.play();
                                 console.log("found new own");
                             }
 
-                            if (playNew && userString == "App Passenger") {
+                            if (Settings.SoundPlayWhenNew && userString == "App Passenger") {
                                 newAppTripSound.play();
                                 console.log("found new app");
                             }
@@ -218,11 +224,15 @@
         // lower difference means an arrived trip changed/got canceled
         // equal values means no difference, trips are the same
 
-        if (firstChecker > arrivedTrips && playArrived) {
+        if (firstChecker > arrivedTrips && Settings.SoundPlayWhenArrived) {
             arrivedSound.play();
+
+            if (!tabFocused) {
+                notifyMe(warningIcon, "NubeLi", "Nuevo viaje en arrived (" + firstChecker + " viajes)");
+            }
         }
 
-        if (firstChecker < arrivedTrips && playStarted) {
+        if (firstChecker < arrivedTrips && Settings.SoundPlayWhenArrived) {
             startedSound.play();
         }
 
@@ -234,97 +244,85 @@
 
     // NEW CHECKER BUTTON //
     function createSettingButtons() {
-        if (playNewIncludeBt) {
-        const buttonID = "playNewBT";
-        //toggle variable is playNew
+        if (Settings.ButtonSoundPlayWhenNew) {
+            const buttonID = "playNewBT";
+            //toggle variable is playNew
 
-        const newCheckButton = document.createElement('button');
-        newCheckButton.id = buttonID;
-        newCheckButton.innerText = "Ping NEW Trips";
-        newCheckButton.style.outlineColor = playNew == true ? "green" : "red";
+            const newCheckButton = document.createElement('button');
+            newCheckButton.id = buttonID;
+            newCheckButton.innerText = "Ping NEW Trips";
+            newCheckButton.style.outlineColor = Settings.SoundPlayWhenNew == true ? "green" : "red";
 
-        newCheckButton.classList.add("setting-buttonbase");
-        newCheckButton.classList.add("setting-newchecker");
+            newCheckButton.classList.add("setting-buttonbase");
+            newCheckButton.classList.add("setting-newchecker");
 
-        newCheckButton.addEventListener("click", ()=> {
-            if (playNew) {
-                playNew = false;
-                newCheckButton.style.outlineColor = "red";
-            } else {
-                playNew = true;
-                newCheckButton.style.outlineColor = "green";
-            }
-        })
+            newCheckButton.addEventListener("click", () => {
+                if (Settings.SoundPlayWhenNew) {
+                    Settings.SoundPlayWhenNew = false;
+                    newCheckButton.style.outlineColor = "red";
+                } else {
+                    Settings.SoundPlayWhenNew = true;
+                    newCheckButton.style.outlineColor = "green";
+                }
+            })
 
-        document.body.append(newCheckButton);
+            document.body.append(newCheckButton);
         }
 
-        if (appTripsToggle) {
-        const buttonID = "appTripsBT";
-        //toggle variable is checkForAppTrips
+        if (Settings.AppTripsToggleButton) {
+            const buttonID = "appTripsBT";
+            //toggle variable is checkForAppTrips
 
-        const appTripsButton = document.createElement('button');
-        appTripsButton.id = buttonID;
-        appTripsButton.innerText = "Check for App Trips";
-        appTripsButton.style.outlineColor = checkForAppTrips == true ? "green" : "red";
+            const appTripsButton = document.createElement('button');
+            appTripsButton.id = buttonID;
+            appTripsButton.innerText = "Check for App Trips";
+            appTripsButton.style.outlineColor = Settings.CheckForAppTripsDefault == true ? "green" : "red";
 
-        appTripsButton.classList.add("setting-buttonbase");
-        appTripsButton.classList.add("setting-checkapptrips");
+            appTripsButton.classList.add("setting-buttonbase");
+            appTripsButton.classList.add("setting-checkapptrips");
 
-        appTripsButton.addEventListener("click", ()=> {
-            if (checkForAppTrips) {
-                checkForAppTrips = false;
-                nameTrips.pop();
+            appTripsButton.addEventListener("click", () => {
+                if (Settings.CheckForAppTripsDefault) {
+                    Settings.CheckForAppTripsDefault = false;
+                    nameTrips.pop();
 
-                appTripsButton.style.outlineColor = "red";
-            } else {
-                checkForAppTrips = true;
-                nameTrips.push("App Passenger");
+                    appTripsButton.style.outlineColor = "red";
+                } else {
+                    Settings.CheckForAppTripsDefault = true;
+                    nameTrips.push("App Passenger");
 
-                appTripsButton.style.outlineColor = "green";
-            }
-        })
+                    appTripsButton.style.outlineColor = "green";
+                }
+            })
 
-        document.body.append(appTripsButton);
+            document.body.append(appTripsButton);
         }
 
-        if (bookingSysButton) {
-        const buttonID = "fetchBookingsBT";
+        if (Settings.NotificationWhenArrived) {
+            if (Notification.permission !== "granted") {
+                const buttonID = "allowNotifsBT"
 
-        fetcherBT = document.createElement('button');
-        fetcherBT.id = buttonID;
-        fetcherBT.innerText = "Fetch Bookings";
-        fetcherBT.style.outlineColor = "yellow";
+                const allowNotifsButton = document.createElement('button');
+                allowNotifsButton.id = buttonID;
+                allowNotifsButton.innerText = "Allow Notifs";
+                allowNotifsButton.style.outlineColor = "yellow";
 
-        fetcherBT.classList.add("setting-buttonbase");
-        fetcherBT.classList.add("setting-fetchbookings");
+                allowNotifsButton.classList.add("setting-buttonbase");
+                allowNotifsButton.style.inset = "auto 580px 30px auto"
 
-        fetcherBT.addEventListener("click", ()=> {
-            bookingSystemFunc("fetch");
-        })
+                allowNotifsButton.addEventListener("click", () => {
+                    let promise = Notification.requestPermission();
 
-        document.body.append(fetcherBT);
+                    allowNotifsButton.remove();
+                })
 
-        // booking info
-        const containerID = "bookingInfoDIV";
-        const contTextID = "bookingInfoTXT";
-
-        bookingInfoCont = document.createElement('div');
-        bookingInfoCont.id = containerID;
-        bookingInfoCont.classList.add("setting-buttonbase");
-        bookingInfoCont.classList.add("container-bookinginfo");
-
-        bookingInfoText = document.createElement('span');
-        bookingInfoText.id = contTextID;
-        bookingInfoText.textContent = "Placeholder text - Placeholder Text - Placeholder Text"
-
-        document.body.append(bookingInfoCont);
-        bookingInfoCont.appendChild(bookingInfoText);
+                document.body.append(allowNotifsButton);
+            }
         }
     }
 
     // READ ALL BUTTON //
-    (function() {
+    (function () {
         'use strict';
 
         //this is written by gemini ai
@@ -395,8 +393,8 @@
     })();
 
     //RIGHT CLICK COPY FUNCTION
-    if (phoneCopy == true) {
-        document.addEventListener('contextmenu', function(event) {
+    if (Settings.CopyPhoneNumRightClick) {
+        document.addEventListener('contextmenu', function (event) {
             const anchor = event.target.closest('a[href^="tel:"]');
 
             if (anchor) {
@@ -431,11 +429,27 @@
 
         return formatted;
     }
+
+    function notifyMe(icon, title, text) {
+        let promise = Notification.requestPermission();
+
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notification");
+        } else if (Notification.permission === "granted") {
+
+            const notification = new Notification(title, {
+                body: text,
+                icon: icon
+            });
+
+        }
+    }
 })();
 
 /*
-1.4 tba
--working on booking sys
+2.0
+- cleaned up and refactored settings
+- desktop notification for arrived trips when unfocused
 
 1.35
 - special ping new trip sound for app trips

@@ -35,20 +35,20 @@ image {
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-/* v1.9 */
+/* v2.0 */
 
 :root {
-  /* options */  
+  /* vv options vv */  
   
   --duplicate-booking: #493e3a;
-  --whatsapp-height: 50%;
-  --owntrips-colour: #322940;
-  --alt-owntrips-colour: #40292e;
-  --phonecopy-colour: #e4734d;
-  --phonenums-colour: #b7addb;
+  --whatsapp-height: 35%;
+  --owntrips-colour: #2f3b39;
+  --alt-owntrips-colour: #352634;
+  --phonecopy-colour: #e44d4d;
+  --phonenums-colour: #a1c2d3;
   --whatsapp-tripcolour: #659a60;
   
-  /* options */  
+  /* ^^ options ^^ */  
   
   --new-yellow: #b97229;
   --new-green: #00763F;
@@ -67,9 +67,6 @@ image {
 * {
   /* disable transitions */
   transition: none !important;
-}
-
-tr[role="row"]:has(.p-tag.p-component.p-tag-warning) {
 }
 
 .whatsapp-highlight {
