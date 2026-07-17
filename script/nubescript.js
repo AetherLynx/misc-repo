@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    //  SCRIPT V4.1
+    //  SCRIPT V4.11
 
     const SET_PROFILE = 2
 
@@ -62,9 +62,6 @@
 
             TimeAlertsForAppTrips: false,       // (toggleable) if to highlight and send sound warnings of the accepted and arrived trips for app trips
 
-            AcceptedWarningInterval: 60,        // counter for playing the accepted warning beep (seconds)
-            ArrivedWarningInterval: 60,         // counter for playing the arrived warning beep (seconds)
-
             SoundForAcceptedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0222%20-%20Almost%20Like%20You%20Failed%20To%20Select.mp3",
             VolumeAcceptedAlert: 0.4,
 
@@ -108,6 +105,10 @@
             LookupWarningInterval: 15,          // counter for playing the arrived warning beep (seconds)
 
             ShowBookingIcon: true,              // show a booking icon next to the booking timestamp if a trip is a Book Later
+
+            // v4.11 options
+
+            WarningSoundsInterval: 60,       // merged counter for the arrived & accepted warnings in seconds
         }
     }
 
@@ -245,8 +246,9 @@
     const cancelBtQuery = "button.p-button.p-component.p-button-icon-only.p-button-rounded.p-button-sm.p-button-danger"
     const warningIcon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxnIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Im0xMi41OTMgMjMuMjU4bC0uMDExLjAwMmwtLjA3MS4wMzVsLS4wMi4wMDRsLS4wMTQtLjAwNGwtLjA3MS0uMDM1cS0uMDE2LS4wMDUtLjAyNC4wMDVsLS4wMDQuMDFsLS4wMTcuNDI4bC4wMDUuMDJsLjAxLjAxM2wuMTA0LjA3NGwuMDE1LjAwNGwuMDEyLS4wMDRsLjEwNC0uMDc0bC4wMTItLjAxNmwuMDA0LS4wMTdsLS4wMTctLjQyN3EtLjAwNC0uMDE2LS4wMTctLjAxOG0uMjY1LS4xMTNsLS4wMTMuMDAybC0uMTg1LjA5M2wtLjAxLjAxbC0uMDAzLjAxMWwuMDE4LjQzbC4wMDUuMDEybC4wMDguMDA3bC4yMDEuMDkzcS4wMTkuMDA1LjAyOS0uMDA4bC4wMDQtLjAxNGwtLjAzNC0uNjE0cS0uMDA1LS4wMTgtLjAyLS4wMjJtLS43MTUuMDAyYS4wMi4wMiAwIDAgMC0uMDI3LjAwNmwtLjAwNi4wMTRsLS4wMzQuNjE0cS4wMDEuMDE4LjAxNy4wMjRsLjAxNS0uMDAybC4yMDEtLjA5M2wuMDEtLjAwOGwuMDA0LS4wMTFsLjAxNy0uNDNsLS4wMDMtLjAxMmwtLjAxLS4wMXoiLz48cGF0aCBmaWxsPSIjNjVhMzBkIiBkPSJNMTIgMmM1LjUyMyAwIDEwIDQuNDc3IDEwIDEwcy00LjQ3NyAxMC0xMCAxMFMyIDE3LjUyMyAyIDEyUzYuNDc3IDIgMTIgMm0wIDEzYTEgMSAwIDEgMCAwIDJhMSAxIDAgMCAwIDAtMm0wLTlhMSAxIDAgMCAwLS45OTMuODgzTDExIDd2NmExIDEgMCAwIDAgMS45OTMuMTE3TDEzIDEzVjdhMSAxIDAgMCAwLTEtMSIvPjwvZz48L3N2Zz4="
     var tabFocused = false;
-    var acceptedAlertCounter = 0;
-    var arrivedAlertCounter = 0;
+    var warningsAlertCounter = 0;
+    //var acceptedAlertCounter = 0;
+    //var arrivedAlertCounter = 0;
     var lookupAlertCounter = 0;
     const minsForAccepted = 10;
     const minsForArrived = 7;
@@ -257,6 +259,9 @@
 
     var lookupData1 = "";
     var lookupData2 = "";
+
+    var toAlertAccepted = false;
+    var toAlertArrived = false;
 
     function hasDuplicates(arr, value) {
         return arr.filter(item => item === value).length > 1;
@@ -335,8 +340,7 @@
     createSettingButtons();
 
     function secondsTick() {
-        acceptedAlertCounter++;
-        arrivedAlertCounter++;
+        warningsAlertCounter++;
         lookupAlertCounter++;
     }
 
@@ -415,6 +419,9 @@
     var statistics = [0, 0, 0, 0, 0]; // new accepted arrived started reachedpaid/reachedpaidextra
 
     function tickFunction(query) {
+        toAlertAccepted = false;
+        toAlertArrived = false;
+
         if (query == "new") {
             firstChecker = 0;
             statistics = [0, 0, 0, 0, 0]
@@ -476,6 +483,10 @@
                     tripBookedT = tripBookedT.replaceAll("[NaNm] ", "")
                     tripAcceptedT = tripAcceptedT.replaceAll("[NaNm] ", "")
                     tripArrivedT = tripArrivedT.replaceAll("[NaNm] ", "")
+
+                    var dataTimeBooked = null;
+                    var dataTimeAccepted = null;
+                    var dataTimeArrived = null;
 
                     //console.log("["+driversName+"] -> ["+selectedDriver+"]"); TESTING
 
@@ -681,9 +692,8 @@
                                     if (theTime >= minsForAccepted && tripTag.textContent !== "ARRIVED") {
                                         row.classList.add("acceptedWarn-highlight");
 
-                                        if (acceptedAlertCounter >= Settings.AcceptedWarningInterval) {
-                                            acceptedAlertCounter = 0;
-                                            acceptedAlertSound.play();
+                                        if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
+                                            toAlertAccepted = true;
                                         }
                                     }
                                 }
@@ -721,13 +731,11 @@
 
                                     const theTime = minuteDiff(tripArrivedT, nyTime);
 
-                                    if (theTime >= minsForArrived) {
+                                    if (theTime >= minsForArrived && !isBookLater) {
                                         row.classList.add("arrivedWarn-highlight");
 
-                                        if (arrivedAlertCounter >= Settings.ArrivedWarningInterval) {
-                                            arrivedAlertCounter = 0;
-                                            arrivedAlertSound.play();
-                                            //console.log("trying to play arrived........")
+                                        if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
+                                            toAlertArrived = true;
                                         }
                                     }
                                 }
@@ -753,20 +761,38 @@
                         if (!(cells[3].querySelector('span[istimedtxt="true"]'))) {
                             if (tripBookedT !== "--") {
                                 const nyTime = getNYTime();
+                                var theTime = minuteDiff(tripBookedT, nyTime);
 
                                 const timeDiffTxt = document.createElement('span')
                                 timeDiffTxt.classList.add("timeDiffBooked");
 
-                                timeDiffTxt.textContent = "[" + minuteDiff(tripBookedT, nyTime) + "m] ";
+                                timeDiffTxt.textContent = "[" + theTime + "m] ";
                                 timeDiffTxt.setAttribute("istimedtxt", "true")
 
                                 cells[3].prepend(timeDiffTxt)
                             }
                         } else {
                             const nyTime = getNYTime();
+                            var theTime = minuteDiff(tripBookedT, nyTime);
                             const textGet = cells[3].querySelector('span[istimedtxt="true"]')
 
-                            textGet.textContent = "[" + minuteDiff(tripBookedT, nyTime) + "m] ";
+                            textGet.textContent = "[" + theTime + "m] ";
+
+                            if (Settings.AlertAfter7MinArrived && (reviewingOwn || reviewingApp)) {
+                                if (Settings.TimeAlertsForAppTrips == false && row.classList.contains("arrivedWarn-highlight") && reviewingApp) {
+                                    row.classList.remove("arrivedWarn-highlight");
+                                }
+
+                                if (Settings.TimeAlertsForAppTrips == false && reviewingApp) return;
+                                
+                                if (isBookLater && theTime >= minsForArrived && tripTag.textContent == "ARRIVED") {
+                                    row.classList.add("arrivedWarn-highlight");
+
+                                    if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
+                                        toAlertArrived = true;
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -969,6 +995,11 @@
                     console.log("REMOVING FILTER HIDE")
                     element.classList.remove("filterHide");
                 });
+            }
+
+            if (toAlertArrived || toAlertAccepted) {
+                warningsAlertCounter = 0;
+                playAlertsFunction(toAlertArrived, toAlertAccepted);
             }
         }
     }
@@ -1401,6 +1432,26 @@
         }, false);
     }
 
+
+    // FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS
+
+    function playAlertsFunction(arr, acc) {
+        if (arr) {
+            arrivedAlertSound.play();
+        }
+
+        if (acc) {
+            if (!arr) {
+                acceptedAlertSound.play();
+                return;
+            }
+
+            setTimeout(() => {
+                acceptedAlertSound.play();
+            }, "800");
+        }
+    }
+
     function highlightText(element) {
         element.classList.add('cust_phonecopy');
 
@@ -1475,6 +1526,13 @@
 })();
 
 /*
+4.11
+[rewrites]
+- accepted/arrived warnings system rewritten for optimization, now uses one singular counter and plays the alerts after a full-trips check up, not for each checked trip
+
+[tweaks]
+- arrived alerts on book laters now function based on booking time, for accuracy
+
 4.1
 [bugfixes]
 - fixed bug where the arrived/started sound would play if entering and exiting a whatsapp chat with arrived status
