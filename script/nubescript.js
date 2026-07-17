@@ -69,11 +69,11 @@
             VolumeArrivedAlert: 0.4,
 
             NewSettingsMenu: true,              // show new settings menu next to whatsapp chat
-            HighlightTodaysTrips: true,        // (toggleable) if to highlight todays trips and desaturate trips which arent || 3.2: now works for ALL trips
+            HighlightTodaysTrips: true,         // (toggleable) if to highlight todays trips and desaturate trips which arent || 3.2: now works for ALL trips
 
             // v3.2 options
 
-            ShowAssignDriverBeforehand: true,   // v3.5: shows a tag on the leftmost side showing who is the selected driver when trip is NEW / RESERVED or ACCEPTED
+            ShowAssignDriverBeforehand: true,    // v3.5: shows a tag on the leftmost side showing who is the selected driver when trip is NEW / RESERVED or ACCEPTED
             ShowColoredWhatsAppChats: true,      // highlight the whatsapp chats based on the booking status of trips matching the phone number
 
             // v3.3 options
@@ -108,7 +108,7 @@
 
             // v4.11 options
 
-            WarningSoundsInterval: 60,       // merged counter for the arrived & accepted warnings in seconds
+            WarningSoundsInterval: 60,          // merged counter for the arrived & accepted warnings in seconds
         }
     }
 
@@ -160,9 +160,6 @@
 
             TimeAlertsForAppTrips: false,       // (toggleable) if to highlight and send sound warnings of the accepted and arrived trips for app trips
 
-            AcceptedWarningInterval: 60,        // counter for playing the accepted warning beep (seconds)
-            ArrivedWarningInterval: 60,         // counter for playing the arrived warning beep (seconds)
-
             SoundForAcceptedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0222%20-%20Almost%20Like%20You%20Failed%20To%20Select.mp3",
             VolumeAcceptedAlert: 0.4,
 
@@ -186,7 +183,6 @@
 
             ShowTimeSinceBooked: true,          // shows timestamp of elapsed time of a trip based on its Booking Date time
 
-
             // v4.0 options
 
             WhatsappTagList: [                  // tags for the whatsapp chats
@@ -207,6 +203,10 @@
             LookupWarningInterval: 15,          // counter for playing the arrived warning beep (seconds)
 
             ShowBookingIcon: true,              // show a booking icon next to the booking timestamp if a trip is a Book Later
+
+            // v4.11 options
+
+            WarningSoundsInterval: 60,        // merged counter for the arrived & accepted warnings in seconds
         }
     }
 
