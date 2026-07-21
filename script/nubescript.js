@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    //  SCRIPT V4.11
+    //  SCRIPT V4.12
 
     const SET_PROFILE = 2
 
@@ -305,7 +305,7 @@
 
     var isSettingsVisible = false;
 
-    const TripsPageURL = "https://nubeli-cash.firebaseapp.com/dashboard-beta";
+    const TripsPageURL = "https://nubeli-cash.firebaseapp.com/dashboard";
     const IncidentsPageURL = "https://nubeli-cash.firebaseapp.com/incidentreports";
 
     document.addEventListener("visibilitychange", () => {
@@ -1526,6 +1526,10 @@
 })();
 
 /*
+4.12
+[heavily important and critically hard change]
+- fixed url dashboard-beta -> dashboard
+
 4.11
 [rewrites]
 - accepted/arrived warnings system rewritten for optimization, now uses one singular counter and plays the alerts after a full-trips check up, not for each checked trip
