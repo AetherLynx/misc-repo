@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    //  SCRIPT V4.12
+    //  SCRIPT V4.2
 
     const SET_PROFILE = 2
 
@@ -46,7 +46,7 @@
             SoundForStartedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0213%20-%20Unknown%20Menu%20Sound.mp3",
             VolumeStartedTrip: 0.4,
 
-            HighlightWhatsappTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
+            HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
 
             // v2.0 options
 
@@ -144,7 +144,7 @@
             SoundForStartedTrip: "https://audio.jukehost.co.uk/6ZUIedUF2GUwmECTn18c1Llj4AzkF0jn",
             VolumeStartedTrip: 0.4,
 
-            HighlightWhatsappTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
+            HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
 
             // v2.0 options
 
@@ -245,6 +245,8 @@
     const wspChatHeaderQuery = ".flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1";
     const cancelBtQuery = "button.p-button.p-component.p-button-icon-only.p-button-rounded.p-button-sm.p-button-danger"
     const warningIcon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxnIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Im0xMi41OTMgMjMuMjU4bC0uMDExLjAwMmwtLjA3MS4wMzVsLS4wMi4wMDRsLS4wMTQtLjAwNGwtLjA3MS0uMDM1cS0uMDE2LS4wMDUtLjAyNC4wMDVsLS4wMDQuMDFsLS4wMTcuNDI4bC4wMDUuMDJsLjAxLjAxM2wuMTA0LjA3NGwuMDE1LjAwNGwuMDEyLS4wMDRsLjEwNC0uMDc0bC4wMTItLjAxNmwuMDA0LS4wMTdsLS4wMTctLjQyN3EtLjAwNC0uMDE2LS4wMTctLjAxOG0uMjY1LS4xMTNsLS4wMTMuMDAybC0uMTg1LjA5M2wtLjAxLjAxbC0uMDAzLjAxMWwuMDE4LjQzbC4wMDUuMDEybC4wMDguMDA3bC4yMDEuMDkzcS4wMTkuMDA1LjAyOS0uMDA4bC4wMDQtLjAxNGwtLjAzNC0uNjE0cS0uMDA1LS4wMTgtLjAyLS4wMjJtLS43MTUuMDAyYS4wMi4wMiAwIDAgMC0uMDI3LjAwNmwtLjAwNi4wMTRsLS4wMzQuNjE0cS4wMDEuMDE4LjAxNy4wMjRsLjAxNS0uMDAybC4yMDEtLjA5M2wuMDEtLjAwOGwuMDA0LS4wMTFsLjAxNy0uNDNsLS4wMDMtLjAxMmwtLjAxLS4wMXoiLz48cGF0aCBmaWxsPSIjNjVhMzBkIiBkPSJNMTIgMmM1LjUyMyAwIDEwIDQuNDc3IDEwIDEwcy00LjQ3NyAxMC0xMCAxMFMyIDE3LjUyMyAyIDEyUzYuNDc3IDIgMTIgMm0wIDEzYTEgMSAwIDEgMCAwIDJhMSAxIDAgMCAwIDAtMm0wLTlhMSAxIDAgMCAwLS45OTMuODgzTDExIDd2NmExIDEgMCAwIDAgMS45OTMuMTE3TDEzIDEzVjdhMSAxIDAgMCAwLTEtMSIvPjwvZz48L3N2Zz4="
+    const driverChatButtonQuery = '.flex.flex-nowrap.justify-content-between.align-items-center.border-1.surface-border.border-round.p-3.cursor-pointer.select-none.hover\\:surface-hover.transition-colors.transition-duration-150';
+    const driverChatBadgeQuery = '.p-badge.p-component.p-badge-no-gutter.p-badge-danger';
     var tabFocused = false;
     var warningsAlertCounter = 0;
     //var acceptedAlertCounter = 0;
@@ -263,9 +265,18 @@
     var toAlertAccepted = false;
     var toAlertArrived = false;
 
+    var allChatButtons = null;
+    var activeBadges = null;
+
     function hasDuplicates(arr, value) {
         return arr.filter(item => item === value).length > 1;
     }
+
+    var driverDupes = {
+        "DRIVEREXAMPLE": 0
+    }
+
+    var urldata = window.location.href;
 
 
     const whatsappClasses = {
@@ -307,6 +318,7 @@
 
     const TripsPageURL = "https://nubeli-cash.firebaseapp.com/dashboard";
     const IncidentsPageURL = "https://nubeli-cash.firebaseapp.com/incidentreports";
+    const DriversChatPageURL = "https://nubeli-cash.firebaseapp.com/chat";
 
     document.addEventListener("visibilitychange", () => {
         tabFocused = !document.hidden;
@@ -326,7 +338,7 @@
         console.log = function () { };
     }
 
-    if (Settings.HighlightWhatsappTrip) {
+    if (Settings.HighlightwspTrip) {
         highlightWhatsapp();
         setInterval(highlightWhatsapp, 200)
     }
@@ -382,49 +394,131 @@
         }, 5000); // Check every 3 seconds
     }
 
-
     function highlightWhatsapp() {
-        const wspCont = document.querySelector(wspContQuery);
+        const isChatOpen = document.querySelector(wspContQuery)
+        const wspCont = document.querySelector(masterWspContQuery);
 
-        if (wspCont) {
+        if (isChatOpen) {
             var wspNumber = wspCont.querySelector(`a[href^="tel:"]`);
+            var highlightedSomething = false;
             wspNumber = formatPhoneNum(wspNumber.getAttribute('href'), true);
+            console.log("WHATSAPP NUMBER: " + wspNumber)
+            console.log("WHATSAPP QUERY COMMAND")
+            console.log(document.querySelectorAll(`a[href*="${wspNumber}"]`))
 
-            document.querySelectorAll(`a[href*="${wspNumber}"]`).forEach(link => {
-                link.closest('tr[role="row"]')?.classList.add("whatsapp-highlight");
+            document.querySelectorAll(`a[href*="${wspNumber}"]`).forEach(element => {
+                var row = element.closest('tr[role="row"]');
+                if (!row) return;
+                console.log("WHATSAPP HIGHLIGHT: Successfully got row element")
+
+                var tripData = getDataFromTrip(row);
+                console.log("WHATSAPP HIGHLIGHT: Successfully got data from trip")
+
+                row.classList.add("whatsapp-highlight");
+                highlightedSomething = true;
+
+                if (Object.keys(whatsappClasses).includes(tripData["tripStatus"])) {
+                    wspCont.classList.add(whatsappClasses[tripData["tripStatus"]])
+                }
             });
+
+            if (!highlightedSomething) {
+                removeClasses("whatsapp-highlight")
+                removeClassesObject(whatsappClasses, wspCont)
+            }
         } else {
-            removeClasses("whatsapp-highlight");
+            if (wspCont) {
+                removeClasses("whatsapp-highlight")
+                removeClassesObject(whatsappClasses, wspCont)
+            }
         }
     }
 
-    function removeAllWspHl() {
-        const removeHighlights = document.querySelectorAll(".whatsapp-highlight")
-        if (removeHighlights) {
-            removeHighlights.forEach(entry => {
-                entry.classList.remove("whatsapp-highlight")
-            })
-        }
-    }
+    var statistics = [0, 0, 0, 0, 0, 0]; // newNorm newApp accepted arrived started reachedpaid/reachedpaidextra
 
-    function removeClasses(classToRemove) {
-        const array = document.querySelectorAll("." + classToRemove)
-        if (array) {
-            array.forEach(element => {
-                element.classList.remove(classToRemove)
-            });
-        }
-    }
-
-    var statistics = [0, 0, 0, 0, 0]; // new accepted arrived started reachedpaid/reachedpaidextra
-
+    /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
     function tickFunction(query) {
         toAlertAccepted = false;
         toAlertArrived = false;
+        driverDupes = {};
+
+        allChatButtons = [];
+        activeBadges = null;
 
         if (query == "new") {
             firstChecker = 0;
-            statistics = [0, 0, 0, 0, 0]
+            statistics = [0, 0, 0, 0, 0, 0]
+
+
+            urldata = window.location.href;
+
+            // change tab title
+            switch (urldata) {
+                case "https://nubeli-cash.firebaseapp.com/dashboard":
+                    document.title = "Dashboard"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/booking-history":
+                    document.title = "Booking History"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/incidentreports":
+                    document.title = "Incident Reports"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/payment-links":
+                    document.title = "Card Payments"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/riders":
+                    document.title = "User Passengers"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/guestusers":
+                    document.title = "Guest Passengers"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/drivers":
+                    document.title = "Drivers List"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/whatsapp-settings":
+                    document.title = "WhatsApp History"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/chat":
+                    document.title = "Drivers Chat"
+                    break;
+                case "https://nubeli-cash.firebaseapp.com/wallethistory":
+                    document.title = "Wallet History"
+                    break;
+                default:
+                    document.title = "NubeLi"
+                    break;
+            }
+
+
+            // NEW READ ALL BUTTON
+            if (urldata == DriversChatPageURL) {
+                activeBadges = document.querySelectorAll(driverChatBadgeQuery);
+
+                if (activeBadges.length >= 1) {
+                    var dataGet = null;
+                    activeBadges.forEach((element, index) => {
+                        var dummy = element.closest(driverChatButtonQuery)
+                        allChatButtons[index] = element.closest(driverChatButtonQuery);
+                    });
+                }
+
+                if (!document.getElementById("newReadAllButton")) {
+                    const readAllButton = document.createElement("button")
+                    readAllButton.id = "newReadAllButton";
+                    updateReadButton(readAllButton, activeBadges.length)
+
+                    readAllButton.addEventListener("click", () => {
+                        allChatButtons.forEach(btn => btn.click());
+                        updateReadButton(readAllButton, activeBadges.length);
+                    });
+
+                    const scrollContainer = document.querySelector(".p-scrollpanel-content");
+                    scrollContainer.prepend(readAllButton);
+                } else {
+                    const readAllButton = document.getElementById("newReadAllButton");
+                    updateReadButton(readAllButton, activeBadges.length);
+                }
+            }
 
             if (window.location.href !== TripsPageURL) return;
 
@@ -475,6 +569,9 @@
                     const isBookLater = cells[35]?.querySelector(cellCheckQuery);
                     const selectedDriver = cells[39]?.querySelector('span')?.textContent.trim()
 
+                    const tripTag = row.querySelector(arrivedText);
+                    const tripStatus = tripTag.textContent;
+
                     lookupData1 = document.getElementById("settings_LOOKUP1").value;
                     lookupData2 = document.getElementById("settings_LOOKUP2").value;
 
@@ -489,6 +586,10 @@
                     var dataTimeArrived = null;
 
                     //console.log("["+driversName+"] -> ["+selectedDriver+"]"); TESTING
+
+                    if (tripPhonenum == "431435555") {
+                        return; // TEST PASSENGER SKIP CHECK
+                    }
 
                     if (nameTrips.includes(tripFrom)) {
                         if (tripFrom !== "App Passenger") {
@@ -510,12 +611,10 @@
                         reviewingOwn = true;
                     }
 
-                    const tripTag = row.querySelector(arrivedText);
-
                     if (tripTag) {
-                        if (tripTag.textContent == "ARRIVED" && reviewingOwn) {
+                        if (tripStatus == "ARRIVED" && reviewingOwn) {
                             firstChecker++;
-                        } else if (tripTag.textContent == "NEW" && activeBookButton) {
+                        } else if (tripStatus == "NEW" && activeBookButton) {
 
                             if (Settings.SoundPlayWhenNew && reviewingOwn) {
                                 newtripSound.play();
@@ -526,28 +625,70 @@
                             }
                         }
 
-                        if (tripTag.textContent == "NEW" || tripTag.textContent == "RESERVED" || tripTag.textContent == "ACCEPTED") {
-                            if (Settings.ShowAssignDriverBeforehand && selectedDriver) {
-                                if (!(cells[3].querySelector('span[isdrivertag="true"]'))) {
-                                    const driverSelectedTag = document.createElement('span')
-                                    driverSelectedTag.classList.add("selectedDriverTag");
+                        if (Settings.ShowAssignDriverBeforehand && selectedDriver) {
+                            var tagElement = cells[3].querySelector('span[isdrivertag="true"]');
+                            if (tripStatus == "NEW" || tripStatus == "RESERVED" || tripStatus == "ACCEPTED") {
+                                if (!tagElement) {
+                                    var styleToSet = "selectedDriverTag"
+                                    var formatId = selectedDriver.replace(/\s/g, '');
+                                    var currentIsNew = false;
 
+                                    const driverSelectedTag = document.createElement('span')
                                     driverSelectedTag.textContent = selectedDriver;
                                     driverSelectedTag.setAttribute("isdrivertag", "true")
 
+                                    if (tripStatus == "NEW") {
+                                        driverSelectedTag.setAttribute("createdOnNew", "true")
+                                        currentIsNew = true
+                                    }
+
+                                    if (document.getElementById(formatId) && currentIsNew) { // means its duplicated !!!!!!!
+                                        driverDupes[formatId]++
+                                        var thaFirstOne = document.getElementById(formatId);
+
+                                        thaFirstOne.classList.remove("selectedDriverTag");
+                                        thaFirstOne.classList.add("selectedDriverTagDupe");
+
+                                        styleToSet = "selectedDriverTagDupe";
+
+                                        driverSelectedTag.id = `${formatId}-${driverDupes[formatId]}`
+                                    } else {
+                                        driverSelectedTag.id = formatId;
+                                    }
+
+                                    driverSelectedTag.classList.add(styleToSet);
                                     cells[3].prepend(driverSelectedTag)
+
+                                } else if (tagElement) {
+                                    var formatId = selectedDriver.replace(/\s/g, '');
+
+                                    if (tagElement.getAttribute("createdOnNew") == "true" && tripStatus !== "NEW") {
+                                        tagElement.setAttribute("createdOnNew", "false");
+                                    }
+
+                                    if (tagElement.classList.contains("selectedDriverTagDupe") && !(driverDupes[formatId])) {
+                                        tagElement.classList.remove("selectedDriverTagDupe");
+                                        tagElement.classList.add("selectedDriverTag")
+                                    }
                                 }
                             }
                         }
 
-                        statistics[0] += tripTag.textContent == "NEW" ? 1 : 0;
-                        statistics[1] += tripTag.textContent == "ACCEPTED" ? 1 : 0;
-                        statistics[2] += tripTag.textContent == "ARRIVED" ? 1 : 0;
-                        statistics[3] += tripTag.textContent == "STARTED" ? 1 : 0;
-                        statistics[4] += tripTag.textContent == "FINISHING" ? 1 : 0;
-                        statistics[4] += tripTag.textContent == "REACHED" ? 1 : 0;
-                        statistics[4] += tripTag.textContent == "PAID" ? 1 : 0;
-                        statistics[4] += tripTag.textContent == "REACHEDEXTRA" ? 1 : 0;
+
+                        if (reviewingApp && tripStatus == "NEW") {
+                            statistics[1]++;
+                        } else if (!reviewingApp && tripStatus == "NEW") {
+                            statistics[0]++;
+                        }
+
+                        statistics[2] += tripStatus == "ACCEPTED" ? 1 : 0;
+                        statistics[3] += tripStatus == "ARRIVED" ? 1 : 0;
+                        statistics[4] += tripStatus == "STARTED" ? 1 : 0;
+                        statistics[5] += tripStatus == "FINISHING" ? 1 : 0;
+                        statistics[5] += tripStatus == "REACHED" ? 1 : 0;
+                        statistics[5] += tripStatus == "PAID" ? 1 : 0;
+                        statistics[5] += tripStatus == "REACHEDEXTRA" ? 1 : 0;
+
                     }
 
                     if (Settings.ShowColoredWhatsAppChats) {
@@ -556,7 +697,8 @@
                         if (trip_wspCont) {
                             const chatGroups = trip_wspCont.querySelectorAll(wspChatgroupsQuery);
 
-                            if (chatGroups) {
+                            if (chatGroups.length > 0) {
+                                console.log("found chat groups! checking")
                                 chatGroups.forEach(element => {
                                     var chatNumber = element.querySelector(`a[href^="tel:"]`);
                                     chatNumber = formatPhoneNum(chatNumber.getAttribute('href'), true);
@@ -568,13 +710,13 @@
                                     }
 
                                     if (chatNumber == tripPhonenum && tripTag) {
-                                        if (Object.keys(whatsappClasses).includes(tripTag.textContent)) {
-                                            element.classList.add(whatsappClasses[tripTag.textContent])
+                                        if (Object.keys(whatsappClasses).includes(tripStatus)) {
+                                            element.classList.add(whatsappClasses[tripStatus])
                                         }
 
-                                        if (tripTag.textContent == "ARRIVED" && !reviewingOwn) {
+                                        if (tripStatus == "ARRIVED" && !reviewingOwn) {
                                             firstChecker++;
-                                        } else if (tripTag.textContent == "NEW" && activeBookButton && !reviewingOwn) {
+                                        } else if (tripStatus == "NEW" && activeBookButton && !reviewingOwn) {
                                             if (Settings.SoundPlayWhenNew) {
                                                 newtripSound.play();
                                             }
@@ -635,26 +777,30 @@
                                         }
                                     }
                                 })
-                                /*
-                                Object.keys(whatsappTagsNumbers).forEach(function (key) {
-                                    if (!currentNumberList.includes(key)) {
-                                        delete whatsappTagsNumbers[key];
-                                        console.log("NOT FOUND, DELETING: " + whatsappTagsNumbers[key] + ", new OBJECT: ")
-                                        console.log(whatsappTagsNumbers)
-                                    }
-                                });
-                                */
                             }
 
                         }
                     }
 
+                    if (Settings.ShowBookingIcon) {
+                        if (!(cells[3].querySelector('img[isbookingicon="true"]')) && isBookLater) {
+                            const bookIcon = document.createElement('img')
+                            bookIcon.setAttribute("isbookingicon", "true")
+                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTIgMTJDMiA2LjQ3NyA2LjQ3NyAyIDEyIDJzMTAgNC40NzcgMTAgMTBzLTQuNDc3IDEwLTEwIDEwUzIgMTcuNTIzIDIgMTJtMTEtNWExIDEgMCAxIDAtMiAwdjMuNzY0YTMgMyAwIDAgMCAxLjY1OCAyLjY4M2wyLjg5NSAxLjQ0N2ExIDEgMCAxIDAgLjg5NC0xLjc4OGwtMi44OTQtMS40NDhhMSAxIDAgMCAxLS41NTMtLjg5NHoiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==";
+                            bookIcon.setAttribute("width", "24px")
+                            bookIcon.setAttribute("height", "24px")
+
+                            cells[3].prepend(bookIcon)
+                        }
+                    }
+
                     if (Settings.ShowTimeSinceAccepted) {
-                        if (tripTag.textContent == "ACCEPTED" || tripTag.textContent == "ARRIVED") {
+                        if (tripStatus == "ACCEPTED" || tripStatus == "ARRIVED") {
                             if (!(cells[14].querySelector('span[istimedtxt="true"]'))) {
                                 if (tripAcceptedT !== "--") {
                                     const nyTime = getNYTime();
                                     let acceptedTimeDiff = minuteDiff(tripAcceptedT, nyTime);
+                                    dataTimeAccepted = acceptedTimeDiff;
 
                                     if (Number.isNaN(acceptedTimeDiff)) {
                                         console.log("ERROR NAN: Accepted time: " + tripAcceptedT + " / Actual Time: " + nyTime)
@@ -673,6 +819,7 @@
                                 const textGet = cells[14].querySelector('span[istimedtxt="true"]')
 
                                 let acceptedTimeDiff = minuteDiff(tripAcceptedT, nyTime)
+                                dataTimeAccepted = acceptedTimeDiff;
 
                                 if (Number.isNaN(acceptedTimeDiff)) {
                                     console.log("ERROR NAN: Accepted time: " + tripAcceptedT + " / Actual Time: " + nyTime)
@@ -687,9 +834,7 @@
 
                                     if (Settings.TimeAlertsForAppTrips == false && reviewingApp) return;
 
-                                    const theTime = minuteDiff(tripAcceptedT, nyTime);
-
-                                    if (theTime >= minsForAccepted && tripTag.textContent !== "ARRIVED") {
+                                    if (acceptedTimeDiff >= minsForAccepted && tripStatus !== "ARRIVED") {
                                         row.classList.add("acceptedWarn-highlight");
 
                                         if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
@@ -702,16 +847,18 @@
                     }
 
                     if (Settings.ShowTimeSinceArrived) {
-                        if (tripTag.textContent == "ARRIVED") {
+                        if (tripStatus == "ARRIVED") {
                             row.classList.remove("acceptedWarn-highlight")
                             if (!(cells[15].querySelector('span[istimedtxt="true"]'))) {
                                 if (tripArrivedT !== "--") {
                                     const nyTime = getNYTime();
+                                    let arrivedTimeDiff = minuteDiff(tripArrivedT, nyTime);
+                                    dataTimeArrived = arrivedTimeDiff;
 
                                     const timeDiffTxt = document.createElement('span')
                                     timeDiffTxt.classList.add("timeDiffArrived");
 
-                                    timeDiffTxt.textContent = "[" + minuteDiff(tripArrivedT, nyTime) + "m] ";
+                                    timeDiffTxt.textContent = "[" + arrivedTimeDiff + "m] ";
                                     timeDiffTxt.setAttribute("istimedtxt", "true")
 
                                     cells[15].prepend(timeDiffTxt)
@@ -719,8 +866,10 @@
                             } else {
                                 const nyTime = getNYTime();
                                 const textGet = cells[15].querySelector('span[istimedtxt="true"]')
+                                let arrivedTimeDiff = minuteDiff(tripArrivedT, nyTime);
+                                dataTimeArrived = arrivedTimeDiff;
 
-                                textGet.textContent = "[" + minuteDiff(tripArrivedT, nyTime) + "m] ";
+                                textGet.textContent = "[" + arrivedTimeDiff + "m] ";
 
                                 if (Settings.AlertAfter7MinArrived && (reviewingOwn || reviewingApp)) {
                                     if (Settings.TimeAlertsForAppTrips == false && row.classList.contains("arrivedWarn-highlight") && reviewingApp) {
@@ -729,14 +878,14 @@
 
                                     if (Settings.TimeAlertsForAppTrips == false && reviewingApp) return;
 
-                                    const theTime = minuteDiff(tripArrivedT, nyTime);
-
-                                    if (theTime >= minsForArrived && !isBookLater) {
+                                    if (arrivedTimeDiff >= minsForArrived && !isBookLater) {
                                         row.classList.add("arrivedWarn-highlight");
 
                                         if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
                                             toAlertArrived = true;
                                         }
+                                    } else if (!(arrivedTimeDiff >= minsForArrived) && !isBookLater) {
+                                        row.classList.remove("arrivedWarn-highlight");
                                     }
                                 }
                             }
@@ -745,38 +894,28 @@
                         }
                     }
 
-                    if (Settings.ShowBookingIcon) {
-                        if (!(cells[3].querySelector('img[isbookingicon="true"]')) && isBookLater) {
-                            const bookIcon = document.createElement('img')
-                            bookIcon.setAttribute("isbookingicon", "true")
-                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTIgMTJDMiA2LjQ3NyA2LjQ3NyAyIDEyIDJzMTAgNC40NzcgMTAgMTBzLTQuNDc3IDEwLTEwIDEwUzIgMTcuNTIzIDIgMTJtMTEtNWExIDEgMCAxIDAtMiAwdjMuNzY0YTMgMyAwIDAgMCAxLjY1OCAyLjY4M2wyLjg5NSAxLjQ0N2ExIDEgMCAxIDAgLjg5NC0xLjc4OGwtMi44OTQtMS40NDhhMSAxIDAgMCAxLS41NTMtLjg5NHoiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==";
-                            bookIcon.setAttribute("width", "24px")
-                            bookIcon.setAttribute("height", "24px")
-
-                            cells[3].prepend(bookIcon)
-                        }
-                    }
-
                     if (Settings.ShowTimeSinceBooked) {
                         if (!(cells[3].querySelector('span[istimedtxt="true"]'))) {
                             if (tripBookedT !== "--") {
                                 const nyTime = getNYTime();
-                                var theTime = minuteDiff(tripBookedT, nyTime);
+                                var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
+                                dataTimeBooked = bookedTimeDiff;
 
                                 const timeDiffTxt = document.createElement('span')
                                 timeDiffTxt.classList.add("timeDiffBooked");
 
-                                timeDiffTxt.textContent = "[" + theTime + "m] ";
+                                timeDiffTxt.textContent = "[" + bookedTimeDiff + "m] ";
                                 timeDiffTxt.setAttribute("istimedtxt", "true")
 
                                 cells[3].prepend(timeDiffTxt)
                             }
                         } else {
                             const nyTime = getNYTime();
-                            var theTime = minuteDiff(tripBookedT, nyTime);
+                            var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
+                            dataTimeBooked = bookedTimeDiff;
                             const textGet = cells[3].querySelector('span[istimedtxt="true"]')
 
-                            textGet.textContent = "[" + theTime + "m] ";
+                            textGet.textContent = "[" + bookedTimeDiff + "m] ";
 
                             if (Settings.AlertAfter7MinArrived && (reviewingOwn || reviewingApp)) {
                                 if (Settings.TimeAlertsForAppTrips == false && row.classList.contains("arrivedWarn-highlight") && reviewingApp) {
@@ -784,8 +923,12 @@
                                 }
 
                                 if (Settings.TimeAlertsForAppTrips == false && reviewingApp) return;
-                                
-                                if (isBookLater && theTime >= minsForArrived && tripTag.textContent == "ARRIVED") {
+
+                                if (!isBookLater) return;
+
+                                if (tripStatus !== "ARRIVED") return;
+
+                                if (bookedTimeDiff >= minsForArrived && dataTimeArrived >= minsForArrived) {
                                     row.classList.add("arrivedWarn-highlight");
 
                                     if (warningsAlertCounter >= Settings.WarningSoundsInterval) {
@@ -799,77 +942,6 @@
                     if (Settings.HighlightTodaysTrips) {
                         if (bookingDate !== today) {
                             row.classList.add("filterHide")
-                        }
-                    }
-
-                    if (Settings.ShowActiveBookingStats) {
-                        const actBookSpan = document.querySelector(actBookSpanQuery);
-                        const parentCont = actBookSpan.parentElement;
-
-                        if (!activeBookButton) {
-                            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! couldnt find active book button! aborting")
-                            return;
-                        }
-
-                        if (!document.getElementById("statsNEW")) {
-                            const stats_NewTrips = document.createElement("span");
-                            stats_NewTrips.id = "statsNEW";
-
-                            stats_NewTrips.textContent = "NEW: ?"
-                            stats_NewTrips.classList.add("booksStatisticsCont")
-                            stats_NewTrips.style.outlineColor = "#ebad28"
-
-                            parentCont.append(stats_NewTrips);
-                            console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEW")
-                        }
-
-
-                        if (!document.getElementById("statsACCEPTED")) {
-                            const stats_AccTrips = document.createElement("span");
-                            stats_AccTrips.id = "statsACCEPTED";
-
-                            stats_AccTrips.textContent = "ACCEPTED: ?"
-                            stats_AccTrips.classList.add("booksStatisticsCont")
-                            stats_AccTrips.style.outlineColor = "#5174d4"
-
-                            parentCont.append(stats_AccTrips);
-                        }
-
-
-                        if (!document.getElementById("statsARRIVED")) {
-                            const stats_ArrTrips = document.createElement("span");
-                            stats_ArrTrips.id = "statsARRIVED";
-
-                            stats_ArrTrips.textContent = "ARRIVED: ?"
-                            stats_ArrTrips.classList.add("booksStatisticsCont")
-                            stats_ArrTrips.style.outlineColor = "#bd3d34"
-
-                            parentCont.append(stats_ArrTrips);
-                        }
-
-
-                        if (!document.getElementById("statsSTARTED")) {
-                            const stats_StaTrips = document.createElement("span");
-                            stats_StaTrips.id = "statsSTARTED";
-
-                            stats_StaTrips.textContent = "STARTED: ?"
-                            stats_StaTrips.classList.add("booksStatisticsCont")
-                            stats_StaTrips.style.outlineColor = "#56ad3b"
-
-                            parentCont.append(stats_StaTrips);
-                        }
-
-
-                        if (!document.getElementById("statsNEAREND")) {
-                            const stats_FinTrips = document.createElement("span");
-                            stats_FinTrips.id = "statsNEAREND";
-
-                            stats_FinTrips.textContent = "FINISHING: ?"
-                            stats_FinTrips.classList.add("booksStatisticsCont")
-                            stats_FinTrips.style.outlineColor = "#407c2e"
-                            stats_FinTrips.style.outlineStyle = "dotted";
-
-                            parentCont.append(stats_FinTrips);
                         }
                     }
 
@@ -944,11 +1016,95 @@
 
             // STATISTICS
             if (activeBookButton) {
+                if (Settings.ShowActiveBookingStats) {
+                    const actBookSpan = document.querySelector(actBookSpanQuery);
+                    const parentCont = actBookSpan.parentElement;
+
+                    if (!activeBookButton) {
+                        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! couldnt find active book button! aborting")
+                        return;
+                    }
+
+                    if (!document.getElementById("statsNEW")) {
+                        const stats_NewTrips = document.createElement("span");
+                        stats_NewTrips.id = "statsNEW";
+
+                        stats_NewTrips.textContent = "NEW: ?"
+                        stats_NewTrips.classList.add("booksStatisticsCont")
+                        stats_NewTrips.style.outlineColor = "#ebad28"
+
+                        parentCont.append(stats_NewTrips);
+                        console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEW")
+                    }
+
+                    if (!document.getElementById("statsNEWAPP")) {
+                        const stats_NewAppTrips = document.createElement("span");
+                        stats_NewAppTrips.id = "statsNEWAPP";
+
+                        stats_NewAppTrips.textContent = "NEW APP: ?"
+                        stats_NewAppTrips.classList.add("booksStatisticsCont")
+                        stats_NewAppTrips.style.outlineColor = "#ebad28"
+
+                        parentCont.append(stats_NewAppTrips);
+                        console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEWAPP")
+                    }
+
+                    if (!document.getElementById("statsACCEPTED")) {
+                        const stats_AccTrips = document.createElement("span");
+                        stats_AccTrips.id = "statsACCEPTED";
+
+                        stats_AccTrips.textContent = "ACCEPTED: ?"
+                        stats_AccTrips.classList.add("booksStatisticsCont")
+                        stats_AccTrips.style.outlineColor = "#5174d4"
+
+                        parentCont.append(stats_AccTrips);
+                    }
+
+
+                    if (!document.getElementById("statsARRIVED")) {
+                        const stats_ArrTrips = document.createElement("span");
+                        stats_ArrTrips.id = "statsARRIVED";
+
+                        stats_ArrTrips.textContent = "ARRIVED: ?"
+                        stats_ArrTrips.classList.add("booksStatisticsCont")
+                        stats_ArrTrips.style.outlineColor = "#bd3d34"
+
+                        parentCont.append(stats_ArrTrips);
+                    }
+
+
+                    if (!document.getElementById("statsSTARTED")) {
+                        const stats_StaTrips = document.createElement("span");
+                        stats_StaTrips.id = "statsSTARTED";
+
+                        stats_StaTrips.textContent = "STARTED: ?"
+                        stats_StaTrips.classList.add("booksStatisticsCont")
+                        stats_StaTrips.style.outlineColor = "#56ad3b"
+
+                        parentCont.append(stats_StaTrips);
+                    }
+
+
+                    if (!document.getElementById("statsNEAREND")) {
+                        const stats_FinTrips = document.createElement("span");
+                        stats_FinTrips.id = "statsNEAREND";
+
+                        stats_FinTrips.textContent = "FINISHING: ?"
+                        stats_FinTrips.classList.add("booksStatisticsCont")
+                        stats_FinTrips.style.outlineColor = "#407c2e"
+                        stats_FinTrips.style.outlineStyle = "dotted";
+
+                        parentCont.append(stats_FinTrips);
+                    }
+                }
+
                 document.getElementById("statsNEW").textContent = "NEW: " + statistics[0];
-                document.getElementById("statsACCEPTED").textContent = "ACCEPTED: " + statistics[1];
-                document.getElementById("statsARRIVED").textContent = "ARRIVED: " + statistics[2];
-                document.getElementById("statsSTARTED").textContent = "STARTED: " + statistics[3];
-                document.getElementById("statsNEAREND").textContent = "FINISHING: " + statistics[4];
+                document.getElementById("statsNEWAPP").textContent = "NEW APP: " + statistics[1];
+                document.getElementById("statsACCEPTED").textContent = "ACCEPTED: " + statistics[2];
+                document.getElementById("statsARRIVED").textContent = "ARRIVED: " + statistics[3];
+                document.getElementById("statsSTARTED").textContent = "STARTED: " + statistics[4];
+                document.getElementById("statsNEAREND").textContent = "FINISHING: " + statistics[5];
+                console.log("NEAREND: " + statistics[5])
 
                 // higher difference means there's a new arrived trip
                 // lower difference means an arrived trip changed/got canceled
@@ -1003,6 +1159,8 @@
             }
         }
     }
+
+    /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
 
     // NEW CHECKER BUTTON //
     function createSettingButtons() {
@@ -1340,76 +1498,19 @@
         }
     }
 
-    // READ ALL BUTTON //
-    (function () {
-        'use strict';
+    function updateReadButton(button, length) {
+        if (length < 1) {
+            button.classList.remove("newReadButton-active");
+            button.classList.add("newReadButton-disabled");
 
-        //this is written by gemini ai
-        const TARGET_URL = "https://nubeli-cash.firebaseapp.com/chat";
-        const CONTAINER_SELECTOR = '.p-scrollpanel-content';
-        const BUTTON_ID = 'custom-read-all-btn';
+            button.innerText = "No hay chats por leer"
+        } else if (length >= 1) {
+            button.classList.remove("newReadButton-disabled");
+            button.classList.add("newReadButton-active");
 
-        // The logic to add the button
-        function addReadAllButton() {
-            // 1. First Check: Are we on the right URL?
-            if (window.location.href !== TARGET_URL) return;
-
-            // 2. Second Check: Is the container visible yet?
-            const scrollContainer = document.querySelector(CONTAINER_SELECTOR);
-            if (!scrollContainer) return;
-
-            // 3. Third Check: Does our button already exist? (Prevent duplicates)
-            if (document.getElementById(BUTTON_ID)) return;
-
-            // --- If we passed all checks, create the button ---
-            const readAllBtn = document.createElement('button');
-            readAllBtn.id = BUTTON_ID;
-            readAllBtn.innerText = "Marcar todo como leido";
-
-            // Styles
-            readAllBtn.className = "p-3 border-round surface-border border-1 cursor-pointer font-bold mb-3";
-            readAllBtn.style.backgroundColor = "#00763F";
-            readAllBtn.style.color = "#fff";
-            readAllBtn.style.width = "100%";
-            readAllBtn.style.borderWidth = "2px";
-            readAllBtn.style.borderColor = "#fff";
-            readAllBtn.style.borderStyle = "solid";
-            readAllBtn.style.borderRadius = "0px";
-            readAllBtn.style.fontSize = "1rem";
-            readAllBtn.style.textAlign = "center";
-
-            // Click Event
-            readAllBtn.addEventListener('click', () => {
-                const chatBtnSelector = '.flex.flex-nowrap.justify-content-between.align-items-center.border-1.surface-border.border-round.p-3.cursor-pointer.select-none.hover\\:surface-hover.transition-colors.transition-duration-150';
-                const chatButtons = scrollContainer.querySelectorAll(chatBtnSelector);
-
-                console.log(`[ReadAll] Clicking ${chatButtons.length} buttons...`);
-                chatButtons.forEach(btn => btn.click());
-            });
-
-            // Insert Button
-            scrollContainer.prepend(readAllBtn);
-            console.log("[ReadAll] Button injected successfully.");
+            button.innerText = "Marcar chats como leidos"
         }
-
-        // --- The Observer Logic ---
-        // This watches the entire body for changes (navigation, content loading, etc.)
-        const observer = new MutationObserver((mutations) => {
-            // Every time the DOM changes, we try to run our logic.
-            // It's safe because the function has checks to stop it from running if not needed.
-            addReadAllButton();
-        });
-
-        // Start watching the document body
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        // Run once immediately in case the page is already loaded
-        addReadAllButton();
-
-    })();
+    }
 
     //RIGHT CLICK COPY FUNCTION
     if (Settings.CopyPhoneNumRightClick) {
@@ -1434,6 +1535,81 @@
 
 
     // FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS
+
+    function getRowElement(reference) {
+        var row = reference.closest(cancelBtQuery);
+        if (!row) return null;
+
+        row = row.closest('tr[role="row"]');
+
+        return row;
+    }
+
+    function removeClasses(classToRemove) {
+        const array = document.querySelectorAll("." + classToRemove)
+        if (array) {
+            array.forEach(element => {
+                element.classList.remove(classToRemove)
+            });
+        }
+    }
+
+    function removeClassesObject(classesList, elementToCheck) {
+        const checkClass = Object.values(classesList).find(cls => elementToCheck.classList.contains(cls));
+
+        if (checkClass) {
+            elementToCheck.classList.remove(checkClass)
+        }
+    }
+
+    function getDataFromTrip(row) {
+
+        const cells = row.querySelectorAll('td[role="cell"]');
+        const raw1 = cells[2]?.textContent.trim(); // "MM/DD/YYYY, 2:02:00 PM"
+
+
+        var bookingDate = raw1?.split(',')[0].trim()           // "3/12/2026"
+        var bookingHour = raw1?.split(',')[1].trim()           // "2:02:00 PM"
+        var tripBookedT = bookingHour.trim().replace(/^\[\d+m\]\s*/, '');
+        var tripPhonenum = cells[6]?.querySelector(`a[href^="tel:"]`);
+        tripPhonenum = formatPhoneNum(tripPhonenum.getAttribute('href'), true);
+        var driversName = cells[7]?.querySelector('span')?.textContent.trim()
+        var carType = cells[8]?.textContent.trim()
+        var pickupAddress = cells[9]?.querySelector('span')?.textContent.trim()
+        var dropoffAddress = cells[11]?.querySelector('span')?.textContent.trim()
+        var tripFrom = cells[13]?.textContent.trim()
+        var tripAcceptedT = cells[14]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
+        var tripArrivedT = cells[15]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
+        var tripStartedT = cells[16]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
+        var paymentType = cells[18]?.textContent.trim()
+        var isBookLater = cells[35]?.querySelector(cellCheckQuery);
+        var selectedDriver = cells[39]?.querySelector('span')?.textContent.trim()
+
+        const tripTag = row.querySelector(arrivedText);
+        const tripStatus = tripTag.textContent;
+
+        const dataObject = {
+            "bookingDate": bookingDate,
+            "bookingHour": bookingHour,
+            "phoneNumber": tripPhonenum,
+            "activeDriver": driversName,
+            "carType": carType,
+            "pickupAddress": pickupAddress,
+            "dropoffAddress": dropoffAddress,
+            "tripCreator": tripFrom,
+            "tripBookedT": tripBookedT,
+            "tripAcceptedT": tripAcceptedT,
+            "tripArrivedT": tripArrivedT,
+            "tripStartedT": tripStartedT,
+            "paymentType": paymentType,
+            "isBookLater": isBookLater,
+            "selectedDriver": selectedDriver,
+            "tripTagObject": tripTag,
+            "tripStatus": tripStatus
+        }
+
+        return dataObject;
+    }
 
     function playAlertsFunction(arr, acc) {
         if (arr) {
@@ -1526,6 +1702,25 @@
 })();
 
 /*
+4.2
+[features]
+- selected drivers tag now highlight when NEW trips have a repeated selected driver
+- site tab name changes depending on current open page for easier multi-tab managing
+- open-chat coloring: when opening a whatsapp chat, if the trip exists the outline will color based on the trip status
+- statistics now count NEW app trips and dispatcher trips separately
+- newly coded read all chats button which reads only unread chats, works faster and doesnt send unnecessary requests to server
+
+[rewrites]
+- rewrote the whatsapp chat highlighting system for optimization and compatiblity with open-chat coloring
+
+[tweaks]
+- tick function should fully ignore Test Passenger trips now
+- on bookings, booked time and both arrived time must be more than 7 minutes for the arrived warning to enable
+
+[fixes]
+- fixed the statistics running under every loop tick instead of every singular tick
+- fixed 7-min arrived warning highlights not removing from trips if the trip's addresses had been modified
+
 4.12
 [heavily important and critically hard change]
 - fixed url dashboard-beta -> dashboard

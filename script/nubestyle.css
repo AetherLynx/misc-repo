@@ -35,7 +35,7 @@ image {
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-/* v4.1 */
+/* v4.2 */
 
 :root {
   /* vv PROFILE 2 OPTIONS vv*/
@@ -77,6 +77,36 @@ image {
 * {
   /* disable transitions */
   transition: none !important;
+}
+
+.p-scrollpanel-bar {
+  background: white !important;
+}
+
+.newReadButton-disabled {
+  width: 100%;
+
+  background-color: #000;
+  color: #768178;
+  border: 2px dashed #768178;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  padding: 20px;
+  margin-bottom: 15px; 
+  cursor: not-allowed;
+}
+
+.newReadButton-active {
+  width: 100%;
+  
+  background-color: #121b10;
+  color: #ecffee;
+  border: 2px solid #77da77;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  padding: 20px;
+  margin-bottom: 15px; 
+  cursor: pointer;
 }
 
 .ns-lookupfield {
@@ -261,6 +291,15 @@ img[isbookingicon] {
 .selectedDriverTag {
   background-color: #282c35;
   border: 2px solid color-mix(in srgb, #282c35, black 70%);
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.selectedDriverTagDupe {
+  background-color: #996428;
+  border: 2px solid color-mix(in srgb, #282c35, #570000 70%);
   padding-left: 8px;
   padding-right: 8px;
   border-radius: 8px;
