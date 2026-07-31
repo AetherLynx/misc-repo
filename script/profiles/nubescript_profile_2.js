@@ -17,7 +17,7 @@
     const SET_PROFILE = 2
 
     if (SET_PROFILE == 2) {
-        Settings = {
+        var Settings = {
 
             ShowConsoleLogs: false,             // show console logs
             CopyPhoneNumRightClick: true,       // copy phone numbers to clipboard by right clicking them
