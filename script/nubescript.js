@@ -12,9 +12,9 @@
 (function () {
     'use strict';
 
-    //  SCRIPT V4.2
+    const SCRIPT_VERSION = "v4.21"
 
-    const SET_PROFILE = 2
+    const SET_PROFILE = 1
 
     if (SET_PROFILE == 1) {
         var Settings = {
@@ -247,6 +247,7 @@
     const warningIcon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxnIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Im0xMi41OTMgMjMuMjU4bC0uMDExLjAwMmwtLjA3MS4wMzVsLS4wMi4wMDRsLS4wMTQtLjAwNGwtLjA3MS0uMDM1cS0uMDE2LS4wMDUtLjAyNC4wMDVsLS4wMDQuMDFsLS4wMTcuNDI4bC4wMDUuMDJsLjAxLjAxM2wuMTA0LjA3NGwuMDE1LjAwNGwuMDEyLS4wMDRsLjEwNC0uMDc0bC4wMTItLjAxNmwuMDA0LS4wMTdsLS4wMTctLjQyN3EtLjAwNC0uMDE2LS4wMTctLjAxOG0uMjY1LS4xMTNsLS4wMTMuMDAybC0uMTg1LjA5M2wtLjAxLjAxbC0uMDAzLjAxMWwuMDE4LjQzbC4wMDUuMDEybC4wMDguMDA3bC4yMDEuMDkzcS4wMTkuMDA1LjAyOS0uMDA4bC4wMDQtLjAxNGwtLjAzNC0uNjE0cS0uMDA1LS4wMTgtLjAyLS4wMjJtLS43MTUuMDAyYS4wMi4wMiAwIDAgMC0uMDI3LjAwNmwtLjAwNi4wMTRsLS4wMzQuNjE0cS4wMDEuMDE4LjAxNy4wMjRsLjAxNS0uMDAybC4yMDEtLjA5M2wuMDEtLjAwOGwuMDA0LS4wMTFsLjAxNy0uNDNsLS4wMDMtLjAxMmwtLjAxLS4wMXoiLz48cGF0aCBmaWxsPSIjNjVhMzBkIiBkPSJNMTIgMmM1LjUyMyAwIDEwIDQuNDc3IDEwIDEwcy00LjQ3NyAxMC0xMCAxMFMyIDE3LjUyMyAyIDEyUzYuNDc3IDIgMTIgMm0wIDEzYTEgMSAwIDEgMCAwIDJhMSAxIDAgMCAwIDAtMm0wLTlhMSAxIDAgMCAwLS45OTMuODgzTDExIDd2NmExIDEgMCAwIDAgMS45OTMuMTE3TDEzIDEzVjdhMSAxIDAgMCAwLTEtMSIvPjwvZz48L3N2Zz4="
     const driverChatButtonQuery = '.flex.flex-nowrap.justify-content-between.align-items-center.border-1.surface-border.border-round.p-3.cursor-pointer.select-none.hover\\:surface-hover.transition-colors.transition-duration-150';
     const driverChatBadgeQuery = '.p-badge.p-component.p-badge-no-gutter.p-badge-danger';
+    const driverChatWideBadgeQuery = '.p-badge.p-component.p-badge-danger:not(.p-badge-dot)';
     var tabFocused = false;
     var warningsAlertCounter = 0;
     //var acceptedAlertCounter = 0;
@@ -272,10 +273,6 @@
         return arr.filter(item => item === value).length > 1;
     }
 
-    var driverDupes = {
-        "DRIVEREXAMPLE": 0
-    }
-
     var urldata = window.location.href;
 
 
@@ -284,13 +281,14 @@
         "ARRIVED": "whatsappstate_arrived",
         "STARTED": "whatsappstate_started",
         "NEW": "whatsappstate_new",
+        "FINISHING": "whatsappstate_reached_paid",
         "REACHED": "whatsappstate_reached_paid",
         "REACHEDEXTRA": "whatsappstate_reached_paid",
         "PAID": "whatsappstate_reached_paid"
     }
 
     var whatsappSelectList = `
-    <select name='wspChatTag'>
+    <select iswsptaglist='true' name='wspChatTag'>
     `
 
     var tagArray = Settings.WhatsappTagList
@@ -391,7 +389,7 @@
                     }
                 }
             });
-        }, 5000); // Check every 3 seconds
+        }, 500); // Check every 3 seconds
     }
 
     function highlightWhatsapp() {
@@ -440,7 +438,6 @@
     function tickFunction(query) {
         toAlertAccepted = false;
         toAlertArrived = false;
-        driverDupes = {};
 
         allChatButtons = [];
         activeBadges = null;
@@ -492,7 +489,7 @@
 
             // NEW READ ALL BUTTON
             if (urldata == DriversChatPageURL) {
-                activeBadges = document.querySelectorAll(driverChatBadgeQuery);
+                activeBadges = document.querySelectorAll(driverChatWideBadgeQuery);
 
                 if (activeBadges.length >= 1) {
                     var dataGet = null;
@@ -629,6 +626,34 @@
                             var tagElement = cells[3].querySelector('span[isdrivertag="true"]');
                             if (tripStatus == "NEW" || tripStatus == "RESERVED" || tripStatus == "ACCEPTED") {
                                 if (!tagElement) {
+                                    var tagStyle = "selectedDriverTag";
+                                    var driverID = selectedDriver.replace(/\s/g, '');
+
+                                    const tagElement = document.createElement('span')
+                                    tagElement.textContent = selectedDriver;
+                                    tagElement.setAttribute("isdrivertag", "true")
+                                    tagElement.setAttribute("driverid", driverID)
+
+                                    tagElement.classList.add(tagStyle);
+                                    cells[3].prepend(tagElement)
+
+                                    const queryDuplicates = document.querySelectorAll(`span[isdrivertag="true"][driverid="${driverID}"]`)
+                                    duplicateTagsUpd(queryDuplicates);
+                                } else {
+                                    var driverID = selectedDriver.replace(/\s/g, '');
+                                    const queryDuplicates = document.querySelectorAll(`span[isdrivertag="true"][driverid="${driverID}"]`)
+                                    var actionTaken = duplicateTagsUpd(queryDuplicates);
+
+                                    if (!actionTaken && tagElement.classList.contains("selectedDriverTagDupe")) {
+                                        tagElement.classList.remove("selectedDriverTagDupe");
+                                        tagElement.classList.add("selectedDriverTag");
+                                    }
+                                }
+                            }
+
+                            /*
+                            if (tripStatus == "NEW" || tripStatus == "RESERVED" || tripStatus == "ACCEPTED") {
+                                if (!tagElement) {
                                     var styleToSet = "selectedDriverTag"
                                     var formatId = selectedDriver.replace(/\s/g, '');
                                     var currentIsNew = false;
@@ -672,6 +697,7 @@
                                     }
                                 }
                             }
+                            */
                         }
 
 
@@ -1189,6 +1215,7 @@
             newSettingsCont.classList.add("newsettings")
 
             newSettingsCont.innerHTML = `
+            <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION}</span>
             <span class="ns-row" id="settings_OPT1">
                 <img src="
                 data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0yMC42NjQgMy40NzhMOCA4djdsLjc0OC4yNjdsLTEuMTI3IDIuMjU0YTIgMiAwIDAgMCAxLjE1NiAyLjc5Mmw0LjA4NCAxLjM2MWEyLjAxNSAyLjAxNSAwIDAgMCAyLjQyMS0xLjAwM2wxLjMwMy0yLjYwNmw0LjA3OSAxLjQ1N0ExIDEgMCAwIDAgMjIgMTguNTgxVjQuNDE5YTEgMSAwIDAgMC0xLjMzNi0uOTQxbS03LjE3MSAxNi4yOTlMOS40MSAxOC40MTZsMS4yMzUtMi40NzFsNC4wNDIgMS40NDR6TTQgMTVoMlY4SDRjLTEuMTAzIDAtMiAuODk3LTIgMnYzYzAgMS4xMDMuODk3IDIgMiAyIi8+PC9zdmc+
@@ -1294,6 +1321,7 @@
                     Settings.ShowActiveBookingStats = false;
                     setting_OPT9.style.borderColor = "red";
 
+                    document.getElementById("statsNEWAPP").remove();
                     document.getElementById("statsNEW").remove();
                     document.getElementById("statsACCEPTED").remove();
                     document.getElementById("statsARRIVED").remove();
@@ -1312,6 +1340,19 @@
                 if (Settings.WhatsappTagsSystem) {
                     Settings.WhatsappTagsSystem = false;
                     setting_OPT8.style.borderColor = "red";
+
+                    var all = document.querySelectorAll('select[iswsptaglist="true"]')
+
+                    all.forEach(element => {
+                        element.remove();
+                    });
+
+                    var all2 = document.querySelectorAll('[alreadyHasTags="true"]')
+
+                    all2.forEach(element => {
+                        element.setAttribute("alreadyHasTags", "false");
+                    });
+
                 } else {
                     Settings.WhatsappTagsSystem = true;
                     setting_OPT8.style.borderColor = "green";
@@ -1325,6 +1366,12 @@
                 if (Settings.ShowAssignDriverBeforehand) {
                     Settings.ShowAssignDriverBeforehand = false;
                     setting_OPT7.style.borderColor = "red";
+
+                    var all = document.querySelectorAll('span[isdrivertag="true"]')
+
+                    all.forEach(element => {
+                        element.remove();                        
+                    });
                 } else {
                     Settings.ShowAssignDriverBeforehand = true;
                     setting_OPT7.style.borderColor = "green";
@@ -1536,6 +1583,18 @@
 
     // FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS
 
+    function duplicateTagsUpd(queryDuplicates) {
+        if (queryDuplicates.length > 1) {
+            queryDuplicates.forEach(element => {
+                element.classList.remove("selectedDriverTag")
+                element.classList.add("selectedDriverTagDupe")
+            });
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function getRowElement(reference) {
         var row = reference.closest(cancelBtQuery);
         if (!row) return null;
@@ -1702,6 +1761,21 @@
 })();
 
 /*
+4.21
+[rewrites]
+- lightly rewrote the selected driver tag system to fix various issues
+
+[fixes]
+- fixed whatsapp classes not including "FINISHING" trips
+- fixed read all button not counting chats which have a double digit unread message count
+- fixed toggling Active Stats Booking button on settings not removing NEW APP stat
+- fixed driver tags not removing if you disable them in the Settings Menu
+- fixed whatsapp tag lists not removing if you disable them in the Settings Menu
+
+[tweaks]
+- always 100 trips now checks every 500ms, to decrease chance of interrupting workflow
+- reverted selected driver tags to highlight if it finds duplicates independently if the trips are NEW or not
+
 4.2
 [features]
 - selected drivers tag now highlight when NEW trips have a repeated selected driver
