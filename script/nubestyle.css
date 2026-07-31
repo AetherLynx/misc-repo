@@ -35,7 +35,7 @@ image {
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
 /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-/* v4.2 */
+/* v4.21 */
 
 :root {
   /* vv PROFILE 2 OPTIONS vv*/
@@ -59,6 +59,28 @@ image {
   --lookup-highlight-trip-background-colour: #000000;       /* the background colour for highlighted trips by lookup */
 
   /* ^^ PROFILE 2 OPTIONS ^^ */
+
+  /* vv PROFILE 1 OPTIONS vv*/
+  
+  --duplicate-booking-color: #41332f;
+
+  --own-booking-color: #2d2131;
+  --app-booking-color: #170c1b;
+
+  --whatsapp-tripcolour: #659a60;
+
+  --whatsapp-chat-window-size: 110%;
+  --whatsapp-chat-window-move-X: -40px;
+  --whatsapp-chat-window-move-Y: -40px;
+  --whatsapp-chat-window-height: 50%;
+
+  --phonenumber-base-color: #a29cfc;
+  --phonenumber-click-color: #e44d4d;
+
+  --lookup-highlight-tripcolour: #a426af;
+  --lookup-highlight-trip-background-colour: #000000;
+
+  /* ^^ PROFILE 1 OPTIONS ^^ */
 
   --new-yellow: #b97229;
   --new-green: #00763F;
@@ -159,7 +181,7 @@ image {
 }
 
 .whatsappstate_new {
-  outline: 2px dotted #ebad28 !important;
+  outline: 2px dashed #ebad28 !important;
   border: none !important;
 }
 
@@ -169,7 +191,7 @@ image {
 }
 
 .whatsappstate_arrived {
-  outline: 2px dotted #d45134 !important;
+  outline: 2px dashed #d45134 !important;
   border: none !important;
 }
 
@@ -179,7 +201,7 @@ image {
 }
 
 .whatsappstate_reached_paid {
-  outline: 2px dotted #2e7742 !important;
+  outline: 2px dashed #2e7742 !important;
   border: none !important;
 }
 
@@ -217,7 +239,7 @@ image {
   z-index: 999;
   inset: auto 180px 90px auto;
   gap: 12px;
-  width: 400px;
+  width: 350px;
   height: auto;
 }
 
@@ -225,8 +247,8 @@ image {
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  justify-content: start;
+  align-items: start;
   color: #fff;
   padding: 10px;
   gap: 10px;
