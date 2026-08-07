@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.23"
+    const SCRIPT_VERSION = "v4.3"
 
     const SET_PROFILE = 2
 
@@ -264,6 +264,28 @@
     var allChatButtons = null;
     var activeBadges = null;
 
+    var stats_NewTrips_toggled = false;
+    var stats_NewAppTrips_toggled = false;
+    var stats_AccTrips_toggled = false;
+    var stats_ArrTrips_toggled = false;
+    var stats_StaTrips_toggled = false;
+    var stats_FinTrips_toggled = false;
+
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = `
+    .filterGlow {
+        filter: brightness(150%);
+    }
+
+    .booksStatisticsCont {
+        cursor: pointer;
+        user-select: none;
+    }
+    `;
+    document.getElementsByTagName('head')[0].appendChild(style);
+
+
     function hasDuplicates(arr, value) {
         return arr.filter(item => item === value).length > 1;
     }
@@ -452,7 +474,6 @@
         if (query == "new") {
             firstChecker = 0;
             statistics = [0, 0, 0, 0, 0, 0]
-
 
             urldata = window.location.href;
 
@@ -707,54 +728,6 @@
                                     }
                                 }
                             }
-
-                            /*
-                            if (tripStatus == "NEW" || tripStatus == "RESERVED" || tripStatus == "ACCEPTED") {
-                                if (!tagElement) {
-                                    var styleToSet = "selectedDriverTag"
-                                    var formatId = selectedDriver.replace(/\s/g, '');
-                                    var currentIsNew = false;
-
-                                    const driverSelectedTag = document.createElement('span')
-                                    driverSelectedTag.textContent = selectedDriver;
-                                    driverSelectedTag.setAttribute("isdrivertag", "true")
-
-                                    if (tripStatus == "NEW") {
-                                        driverSelectedTag.setAttribute("createdOnNew", "true")
-                                        currentIsNew = true
-                                    }
-
-                                    if (document.getElementById(formatId) && currentIsNew) { // means its duplicated !!!!!!!
-                                        driverDupes[formatId]++
-                                        var thaFirstOne = document.getElementById(formatId);
-
-                                        thaFirstOne.classList.remove("selectedDriverTag");
-                                        thaFirstOne.classList.add("selectedDriverTagDupe");
-
-                                        styleToSet = "selectedDriverTagDupe";
-
-                                        driverSelectedTag.id = `${formatId}-${driverDupes[formatId]}`
-                                    } else {
-                                        driverSelectedTag.id = formatId;
-                                    }
-
-                                    driverSelectedTag.classList.add(styleToSet);
-                                    cells[3].prepend(driverSelectedTag)
-
-                                } else if (tagElement) {
-                                    var formatId = selectedDriver.replace(/\s/g, '');
-
-                                    if (tagElement.getAttribute("createdOnNew") == "true" && tripStatus !== "NEW") {
-                                        tagElement.setAttribute("createdOnNew", "false");
-                                    }
-
-                                    if (tagElement.classList.contains("selectedDriverTagDupe") && !(driverDupes[formatId])) {
-                                        tagElement.classList.remove("selectedDriverTagDupe");
-                                        tagElement.classList.add("selectedDriverTag")
-                                    }
-                                }
-                            }
-                            */
                         }
 
 
@@ -771,6 +744,20 @@
                         statistics[5] += tripStatus == "REACHED" ? 1 : 0;
                         statistics[5] += tripStatus == "PAID" ? 1 : 0;
                         statistics[5] += tripStatus == "REACHEDEXTRA" ? 1 : 0;
+
+
+                        if ( //what is ts braa  
+                            (tripStatus == "NEW" && reviewingApp && stats_NewAppTrips_toggled) ||
+                            (tripStatus == "NEW" && !reviewingApp && stats_NewTrips_toggled) ||
+                            (tripStatus == "ACCEPTED" && stats_AccTrips_toggled) ||
+                            (tripStatus == "ARRIVED" && stats_ArrTrips_toggled) ||
+                            (tripStatus == "STARTED" && stats_StaTrips_toggled) ||
+                            ((tripStatus == "FINISHING" || tripStatus == "REACHED" || tripStatus == "PAID" || tripStatus == "REACHEDEXTRA") && stats_FinTrips_toggled)
+                        ) {
+                            row.classList.add("filterGlow")
+                        } else if (row.classList.contains("filterGlow")) {
+                            row.classList.remove("filterGlow");
+                        }
 
                     }
 
@@ -1116,6 +1103,18 @@
                         stats_NewTrips.classList.add("booksStatisticsCont")
                         stats_NewTrips.style.outlineColor = "#ebad28"
 
+                        stats_NewTrips.addEventListener("click", () => {
+                            if (!stats_NewTrips_toggled) {
+                                stats_NewTrips.style.background = "#ebad28";
+                                stats_NewTrips.style.color = "#242424";
+                                stats_NewTrips_toggled = true;
+                            } else {
+                                stats_NewTrips.style.background = "none";
+                                stats_NewTrips.style.color = "#DCDCDC";
+                                stats_NewTrips_toggled = false;
+                            }
+                        })
+
                         parentCont.append(stats_NewTrips);
                         console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEW")
                     }
@@ -1127,6 +1126,18 @@
                         stats_NewAppTrips.textContent = "NEW APP: ?"
                         stats_NewAppTrips.classList.add("booksStatisticsCont")
                         stats_NewAppTrips.style.outlineColor = "#ebad28"
+
+                        stats_NewAppTrips.addEventListener("click", () => {
+                            if (!stats_NewAppTrips_toggled) {
+                                stats_NewAppTrips.style.background = "#ebad28";
+                                stats_NewAppTrips.style.color = "#242424";
+                                stats_NewAppTrips_toggled = true;
+                            } else {
+                                stats_NewAppTrips.style.background = "none";
+                                stats_NewAppTrips.style.color = "#DCDCDC";
+                                stats_NewAppTrips_toggled = false;
+                            }
+                        })
 
                         parentCont.append(stats_NewAppTrips);
                         console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEWAPP")
@@ -1140,6 +1151,18 @@
                         stats_AccTrips.classList.add("booksStatisticsCont")
                         stats_AccTrips.style.outlineColor = "#5174d4"
 
+                        stats_AccTrips.addEventListener("click", () => {
+                            if (!stats_AccTrips_toggled) {
+                                stats_AccTrips.style.background = "#5174d4";
+                                stats_AccTrips.style.color = "#242424";
+                                stats_AccTrips_toggled = true;
+                            } else {
+                                stats_AccTrips.style.background = "none";
+                                stats_AccTrips.style.color = "#DCDCDC";
+                                stats_AccTrips_toggled = false;
+                            }
+                        })
+
                         parentCont.append(stats_AccTrips);
                     }
 
@@ -1151,6 +1174,18 @@
                         stats_ArrTrips.textContent = "ARRIVED: ?"
                         stats_ArrTrips.classList.add("booksStatisticsCont")
                         stats_ArrTrips.style.outlineColor = "#bd3d34"
+
+                        stats_ArrTrips.addEventListener("click", () => {
+                            if (!stats_ArrTrips_toggled) {
+                                stats_ArrTrips.style.background = "#bd3d34";
+                                stats_ArrTrips.style.color = "#242424";
+                                stats_ArrTrips_toggled = true;
+                            } else {
+                                stats_ArrTrips.style.background = "none";
+                                stats_ArrTrips.style.color = "#DCDCDC";
+                                stats_ArrTrips_toggled = false;
+                            }
+                        })
 
                         parentCont.append(stats_ArrTrips);
                     }
@@ -1164,6 +1199,18 @@
                         stats_StaTrips.classList.add("booksStatisticsCont")
                         stats_StaTrips.style.outlineColor = "#56ad3b"
 
+                        stats_StaTrips.addEventListener("click", () => {
+                            if (!stats_StaTrips_toggled) {
+                                stats_StaTrips.style.background = "#56ad3b";
+                                stats_StaTrips.style.color = "#242424";
+                                stats_StaTrips_toggled = true;
+                            } else {
+                                stats_StaTrips.style.background = "none";
+                                stats_StaTrips.style.color = "#DCDCDC";
+                                stats_StaTrips_toggled = false;
+                            }
+                        })
+
                         parentCont.append(stats_StaTrips);
                     }
 
@@ -1176,6 +1223,18 @@
                         stats_FinTrips.classList.add("booksStatisticsCont")
                         stats_FinTrips.style.outlineColor = "#407c2e"
                         stats_FinTrips.style.outlineStyle = "dotted";
+
+                        stats_FinTrips.addEventListener("click", () => {
+                            if (!stats_FinTrips_toggled) {
+                                stats_FinTrips.style.background = "#407c2e";
+                                stats_FinTrips.style.color = "#242424";
+                                stats_FinTrips_toggled = true;
+                            } else {
+                                stats_FinTrips.style.background = "none";
+                                stats_FinTrips.style.color = "#DCDCDC";
+                                stats_FinTrips_toggled = false;
+                            }
+                        })
 
                         parentCont.append(stats_FinTrips);
                     }
@@ -1211,6 +1270,8 @@
                     arrivedTrips = firstChecker;
                     firstChecker = 0;
                 }
+            } else {
+                toggleOffStatToggles();
             }
 
             if (lookupCooldown) {
@@ -1379,6 +1440,7 @@
                 document.getElementById("statsARRIVED").remove();
                 document.getElementById("statsSTARTED").remove();
                 document.getElementById("statsNEAREND").remove();
+                toggleOffStatToggles();
             } else {
                 Settings.ShowActiveBookingStats = true;
                 setting_OPT9.style.borderColor = "green";
@@ -1578,6 +1640,15 @@
 
 
     // FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS -- FUNCTIONS
+
+    function toggleOffStatToggles() {
+        stats_NewTrips_toggled = false;
+        stats_NewAppTrips_toggled = false;
+        stats_AccTrips_toggled = false;
+        stats_ArrTrips_toggled = false;
+        stats_StaTrips_toggled = false;
+        stats_FinTrips_toggled = false;
+    }
 
     function duplicateTagsUpd(queryDuplicates) {
         if (queryDuplicates.length > 1) {
@@ -1804,6 +1875,10 @@
 })();
 
 /*
+4.3
+[features]
+- added highlighting trips with booking statistics
+
 4.23
 [fixes]
 - fixed some functions like select driver and booking icon not working because of a new cell on trips
