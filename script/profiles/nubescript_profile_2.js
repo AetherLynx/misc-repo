@@ -12,9 +12,103 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.21"
+    const SCRIPT_VERSION = "v4.23"
 
     const SET_PROFILE = 2
+
+    if (SET_PROFILE == 1) {
+        var Settings = {
+
+            ShowConsoleLogs: false,             // show console logs
+            CopyPhoneNumRightClick: true,       // copy phone numbers to clipboard by right clicking them
+            CheckForAppTripsDefault: false,     // default option for highlighting app trips
+            AppTripsToggleButton: true,         // display the 'Check For App Trips' button
+
+            HighlightTripsFrom: [               // whose trips to highlight in the dashboard
+                "Samuel Martinez",
+                "Santiago Martinez"
+            ],
+
+            SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
+            SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
+            SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
+
+            SoundForNewTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0215%20-%20More%20Menu%20Stuff.mp3",
+            VolumeNewTrip: 0.06,                 // volume: 0 - 1 (e.g: 0.5, 0.1, 0.9)
+
+            SoundForNewAppTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3",
+            VolumeNewAppTrip: 0.06,
+
+            SoundForArrivedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0210%20-%20Menu%20Selection.mp3",
+            VolumeArrivedTrip: 0.4,
+
+            SoundForStartedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0213%20-%20Unknown%20Menu%20Sound.mp3",
+            VolumeStartedTrip: 0.4,
+
+            HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
+
+            // v2.0 options
+
+            NotificationWhenArrived: false,      // send desktop notification when a trip's arrived and window is unfocused
+            Always100Trips: true,               // always render 100 trips (uses dropdown button)
+
+            // v3.0 - v3.1 options
+
+            ShowTimeSinceAccepted: true,        // shows how many minutes have passed since the trip was accepted
+            AlertAfter10MinAccepted: true,      // notif alert when it has been 10 mins since accepted trip, and highlight
+            ShowTimeSinceArrived: true,         // shows how many minutes have passed since driver's been on arrived
+            AlertAfter7MinArrived: true,        // notif alert when it has been 7 mins since arrived
+
+            TimeAlertsForAppTrips: false,       // (toggleable) if to highlight and send sound warnings of the accepted and arrived trips for app trips
+
+            SoundForAcceptedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0222%20-%20Almost%20Like%20You%20Failed%20To%20Select.mp3",
+            VolumeAcceptedAlert: 0.4,
+
+            SoundForArrivedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0107%20-%20Getting%20An%20Item.mp3",
+            VolumeArrivedAlert: 0.4,
+
+            HighlightTodaysTrips: true,         // (toggleable) if to highlight todays trips and desaturate trips which arent || 3.2: now works for ALL trips
+
+            // v3.2 options
+
+            ShowAssignDriverBeforehand: true,    // v3.5: shows a tag on the leftmost side showing who is the selected driver when trip is NEW / RESERVED or ACCEPTED
+            ShowColoredWhatsAppChats: true,      // highlight the whatsapp chats based on the booking status of trips matching the phone number
+
+            // v3.3 options
+
+            WhatsappTagsSystem: false,           // adds a new list on every whatsapp chat so you can tag and order the whatsapp chats for optimizing workflow
+
+            // v3.5 options
+
+            ShowTimeSinceBooked: true,          // shows timestamp of elapsed time of a trip based on its Booking Date time
+
+            // v4.0 options
+
+            WhatsappTagList: [                  // tags for the whatsapp chats
+                "COTIZANDO VIAJE",
+                "VIAJE EN CAMINO",
+                "VIAJE EN DOUBLE TRIP",
+                "VIAJE RESERVADO",
+                "VIAJE COMENZADO",
+                "CHAT DE SOPORTE",
+                "MANTENER CHAT ABIERTO"
+            ],
+
+            ShowActiveBookingStats: true,       // show statistics alongisde the Current and Today bookings displaying number of New, Accepted, and Started trips
+            UseTermLookupOnSettings: true,      // enables 2 text fields on the settings menu, value set on the fields will be looked upon for each trip
+
+            SoundForLookUpAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/1064%20-%20HP%20Healing%20(Food).mp3",
+            VolumeLookupAlert: 0.4,
+
+            LookupWarningInterval: 15,          // counter for playing the arrived warning beep (seconds)
+
+            ShowBookingIcon: true,              // show a booking icon next to the booking timestamp if a trip is a Book Later
+
+            // v4.11 options
+
+            WarningSoundsInterval: 60,          // merged counter for the arrived & accepted warnings in seconds
+        }
+    }
 
     if (SET_PROFILE == 2) {
         var Settings = {
@@ -30,7 +124,6 @@
                 "Nombre ejemplo",
             ],
 
-            ButtonSoundPlayWhenNew: true,       // display the 'Ping NEW' button
             SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
             SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
             SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
@@ -69,7 +162,6 @@
             SoundForArrivedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0107%20-%20Getting%20An%20Item.mp3",
             VolumeArrivedAlert: 0.4,
 
-            NewSettingsMenu: true,              // show new settings menu next to whatsapp chat
             HighlightTodaysTrips: false,        // (toggleable) if to highlight todays trips and desaturate trips which arent
 
 
@@ -337,6 +429,18 @@
 
     var statistics = [0, 0, 0, 0, 0, 0]; // newNorm newApp accepted arrived started reachedpaid/reachedpaidextra
 
+    const numBlacklist = [
+        "431435555",
+        "13158697089",
+        "16968870000",
+    ]
+
+    const driverBlacklist = [
+        "New Driver App",
+        "Test Driver",
+        "Paquita Ramirez",
+    ]
+
     /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
     function tickFunction(query) {
         toAlertAccepted = false;
@@ -449,6 +553,52 @@
                 var reviewingOwn = false;
 
                 if (row) {
+                    /*
+                    00 CANCEL
+                    01 SEE TRIP INFO
+                    02 BOOKING DATE
+                    03 BOOKING STATUS
+                    04 CALLED CELL
+                    05 PASSENGER NAME
+                    06 PASSENGER MOBILE PHONE
+                    07 ASSIGN DRIVER
+                    08 CAR DETAILS
+                    09 PICKUP ADDRESS
+                    10 INITIAL PICKUP ADDRESS
+                    11 DROP OFF ADDRESS
+                    12 INITIAL DROP ADDRESS
+                    13 CREATED BY
+                    14 TRIP ACCEPTED TIME
+                    15 CONFIRM ARRIVED TIME
+                    16 TRIP STARTED TIME
+                    17 VEHICLE TYPE
+                    18 PAYMENT MODE
+                    19 SPECIAL PAYMENTS (ZELLE)
+                    20 CASH PAYMENT AMOUNT $
+                    21 WALLET PAYMENT AMOUNT $
+                    22 PASSENGER DISCOUNT TOTAL
+                    23 PASSENGER DISCOUNT DRIVER APPLY CHECK
+                    24 LOCATION RULE TOTAL
+                    25 LOCATION RULE TYPE
+                    26 LOCATION RULE DRIVER APPLY CHECK
+                    27 TRIP COST $
+                    28 PASSENGER TRANSACTION COST $
+                    29 FARE ESTIMATE $
+                    30 +PASSENGER $
+                    31 +STOP $
+                    32 +OTHER TRIP $
+                    33 PREMIUM SERVICES (?)
+                    34 FARE ESTIMATE DISTANCE (mi)
+                    35 CUSTOM TRIP COST CHECK
+                    36 BOOK LATER CHECK
+                    37 GUEST CHECK
+                    38 PENALTY $
+                    39 GUEST VOUCHER VALUE $
+                    40 SELECTED DRIVER
+                    41 IS DROP ADDRESS EDITED CHECK
+                    42 DROP ADDRESS EDITED BY
+                    43 APPROVED BY (XX)
+                    */
                     const cells = row.querySelectorAll('td[role="cell"]');
                     const raw1 = cells[2]?.textContent.trim(); // "MM/DD/YYYY, 2:02:00 PM"
                     const bookingDate = raw1?.split(',')[0].trim()           // "3/12/2026"
@@ -466,8 +616,8 @@
                     var tripArrivedT = cells[15]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
                     //const tripStartedT = cells[16]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
                     //const paymentType = cells[18]?.textContent.trim()
-                    const isBookLater = cells[35]?.querySelector(cellCheckQuery);
-                    const selectedDriver = cells[39]?.querySelector('span')?.textContent.trim()
+                    const isBookLater = cells[36]?.querySelector(cellCheckQuery);
+                    const selectedDriver = cells[40]?.querySelector('span')?.textContent.trim()
 
                     const tripTag = row.querySelector(arrivedText);
                     const tripStatus = tripTag.textContent;
@@ -487,8 +637,12 @@
 
                     //console.log("["+driversName+"] -> ["+selectedDriver+"]"); TESTING
 
-                    if (tripPhonenum == "431435555") {
+                    if (numBlacklist.includes(tripPhonenum)) {
                         return; // TEST PASSENGER SKIP CHECK
+                    }
+
+                    if (driverBlacklist.includes(driversName)) {
+                        return; // TEST DRIVERS SKIP CHECK
                     }
 
                     if (nameTrips.includes(tripFrom)) {
@@ -715,7 +869,7 @@
                         if (!(cells[3].querySelector('img[isbookingicon="true"]')) && isBookLater) {
                             const bookIcon = document.createElement('img')
                             bookIcon.setAttribute("isbookingicon", "true")
-                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTIgMTJDMiA2LjQ3NyA2LjQ3NyAyIDEyIDJzMTAgNC40NzcgMTAgMTBzLTQuNDc3IDEwLTEwIDEwUzIgMTcuNTIzIDIgMTJtMTEtNWExIDEgMCAxIDAtMiAwdjMuNzY0YTMgMyAwIDAgMCAxLjY1OCAyLjY4M2wyLjg5NSAxLjQ0N2ExIDEgMCAxIDAgLjg5NC0xLjc4OGwtMi44OTQtMS40NDhhMSAxIDAgMCAxLS41NTMtLjg5NHoiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==";
+                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNNy4yODggMTMuNzEzUTcgMTMuNDI1IDcgMTN0LjI4OC0uNzEyVDggMTJ0LjcxMy4yODhUOSAxM3QtLjI4OC43MTNUOCAxNHQtLjcxMi0uMjg4bTQgMFExMSAxMy40MjYgMTEgMTN0LjI4OC0uNzEyVDEyIDEydC43MTMuMjg4VDEzIDEzdC0uMjg4LjcxM1QxMiAxNHQtLjcxMi0uMjg4bTQgMFExNSAxMy40MjYgMTUgMTN0LjI4OC0uNzEyVDE2IDEydC43MTMuMjg4VDE3IDEzdC0uMjg4LjcxM1QxNiAxNHQtLjcxMi0uMjg4TTUgMjJxLS44MjUgMC0xLjQxMi0uNTg3VDMgMjBWNnEwLS44MjUuNTg4LTEuNDEyVDUgNGgxVjJoMnYyaDhWMmgydjJoMXEuODI1IDAgMS40MTMuNTg4VDIxIDZ2MTRxMCAuODI1LS41ODcgMS40MTNUMTkgMjJ6bTAtMmgxNFYxMEg1eiIvPjwvc3ZnPg==";
                             bookIcon.setAttribute("width", "24px")
                             bookIcon.setAttribute("height", "24px")
 
@@ -1094,30 +1248,29 @@
     // NEW CHECKER BUTTON //
     function createSettingButtons() {
 
-        if (Settings.NewSettingsMenu) {
-            const buttonID = "openSettingsMenu";
+        const buttonID = "openSettingsMenu";
 
-            const settingsOpenBT = document.createElement('button');
-            settingsOpenBT.id = buttonID;
+        const settingsOpenBT = document.createElement('button');
+        settingsOpenBT.id = buttonID;
 
-            const iconImage = document.createElement('img');
-            iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgNDIgNDIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik02LjYyIDI0LjVjLjQgMS42MiAxLjA2IDMuMTMgMS45MyA0LjQ5bC0yLjQzIDIuNDRjLTEuMDkgMS4wOS0xLjA4IDEuNzQtLjEyIDIuN2wyLjM3IDIuMzdjLjk3Ljk3MSAxLjYzLjk1IDIuNy0uMTJsMi41NS0yLjU2YzEuMi42ODggMi41IDEuMjIgMy44OCAxLjU2djMuMTJjMCAxLjU1LjQ3IDIgMS44MiAyaDMuMzZjMS4zNyAwIDEuODItLjQ4IDEuODItMnYtMy4xMmMxLjM4LS4zNCAyLjY4LS44NyAzLjg4LTEuNTZsMi42MSAyLjYxOWMxLjA4IDEuMDY4IDEuNzI5IDEuMDkgMi42OTkuMTMxbDIuMzgxLTIuMzgxYy45NDktLjk0OS45Ny0xLjYwMi0uMTMxLTIuNjk5bC0yLjUtMi41YTE0LjcgMTQuNyAwIDAgMCAxLjkzOC00LjQ5aDMuMzAyYzEuMzY4IDAgMS44MTgtLjQ4IDEuODE4LTJ2LTNjMC0xLjQ4LS4zOTMtMi0xLjgxOC0yaC0zLjMwMmMtLjM0LTEuMzgtLjg3LTIuNjgtMS41NjItMy44OGwyLjM4Mi0yLjM3YzEuMDUtMS4wNSAxLjE0LTEuNy4xMy0yLjdsLTIuMzgtMi4zOGMtLjk1LS45NS0xLjYzMi0uOTQtMi43LjEzbC0yLjI2IDIuMjVBMTUgMTUgMCAwIDAgMjQuNSA2LjYyVjMuNWMwLTEuNDgtLjM5MS0yLTEuODItMmgtMy4zNmMtMS4zNSAwLTEuODIuNDktMS44MiAydjMuMTJjLTEuNjIuNC0zLjEzIDEuMDYtNC40OSAxLjkzTDEwLjc1IDYuM0M5LjY4IDUuMjMgOSA1LjIyIDguMDUgNi4xN0w1LjY3IDguNTVjLTEuMDEgMS0uOTIgMS42NS4xMyAyLjdsMi4zNyAyLjM3Yy0uNjggMS4yLTEuMjEgMi41LTEuNTUgMy44OGgtMy4zYy0xLjM1IDAtMS44Mi40OS0xLjgyIDJ2M2MwIDEuNTUuNDcgMiAxLjgyIDJ6bTguNjYtMy41YzAtMy4xNiAyLjU2LTUuNzIgNS43Mi01LjcyczUuNzIxIDIuNTYgNS43MjEgNS43MmE1LjcyIDUuNzIgMCAxIDEtMTEuNDQxIDAiLz48L3N2Zz4="
-            iconImage.setAttribute("width", "20px")
-            iconImage.setAttribute("height", "20px")
+        const iconImage = document.createElement('img');
+        iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgNDIgNDIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik02LjYyIDI0LjVjLjQgMS42MiAxLjA2IDMuMTMgMS45MyA0LjQ5bC0yLjQzIDIuNDRjLTEuMDkgMS4wOS0xLjA4IDEuNzQtLjEyIDIuN2wyLjM3IDIuMzdjLjk3Ljk3MSAxLjYzLjk1IDIuNy0uMTJsMi41NS0yLjU2YzEuMi42ODggMi41IDEuMjIgMy44OCAxLjU2djMuMTJjMCAxLjU1LjQ3IDIgMS44MiAyaDMuMzZjMS4zNyAwIDEuODItLjQ4IDEuODItMnYtMy4xMmMxLjM4LS4zNCAyLjY4LS44NyAzLjg4LTEuNTZsMi42MSAyLjYxOWMxLjA4IDEuMDY4IDEuNzI5IDEuMDkgMi42OTkuMTMxbDIuMzgxLTIuMzgxYy45NDktLjk0OS45Ny0xLjYwMi0uMTMxLTIuNjk5bC0yLjUtMi41YTE0LjcgMTQuNyAwIDAgMCAxLjkzOC00LjQ5aDMuMzAyYzEuMzY4IDAgMS44MTgtLjQ4IDEuODE4LTJ2LTNjMC0xLjQ4LS4zOTMtMi0xLjgxOC0yaC0zLjMwMmMtLjM0LTEuMzgtLjg3LTIuNjgtMS41NjItMy44OGwyLjM4Mi0yLjM3YzEuMDUtMS4wNSAxLjE0LTEuNy4xMy0yLjdsLTIuMzgtMi4zOGMtLjk1LS45NS0xLjYzMi0uOTQtMi43LjEzbC0yLjI2IDIuMjVBMTUgMTUgMCAwIDAgMjQuNSA2LjYyVjMuNWMwLTEuNDgtLjM5MS0yLTEuODItMmgtMy4zNmMtMS4zNSAwLTEuODIuNDktMS44MiAydjMuMTJjLTEuNjIuNC0zLjEzIDEuMDYtNC40OSAxLjkzTDEwLjc1IDYuM0M5LjY4IDUuMjMgOSA1LjIyIDguMDUgNi4xN0w1LjY3IDguNTVjLTEuMDEgMS0uOTIgMS42NS4xMyAyLjdsMi4zNyAyLjM3Yy0uNjggMS4yLTEuMjEgMi41LTEuNTUgMy44OGgtMy4zYy0xLjM1IDAtMS44Mi40OS0xLjgyIDJ2M2MwIDEuNTUuNDcgMiAxLjgyIDJ6bTguNjYtMy41YzAtMy4xNiAyLjU2LTUuNzIgNS43Mi01LjcyczUuNzIxIDIuNTYgNS43MjEgNS43MmE1LjcyIDUuNzIgMCAxIDEtMTEuNDQxIDAiLz48L3N2Zz4="
+        iconImage.setAttribute("width", "20px")
+        iconImage.setAttribute("height", "20px")
 
-            settingsOpenBT.style.outlineColor = "white";
+        settingsOpenBT.style.outlineColor = "white";
 
-            settingsOpenBT.classList.add("setting-buttonbase");
-            settingsOpenBT.style.inset = "auto 180px 30px auto"
+        settingsOpenBT.classList.add("setting-buttonbase");
+        settingsOpenBT.style.inset = "auto 180px 30px auto"
 
-            document.body.append(settingsOpenBT);
-            settingsOpenBT.append(iconImage);
+        document.body.append(settingsOpenBT);
+        settingsOpenBT.append(iconImage);
 
-            const newSettingsCont = document.createElement("div");
-            newSettingsCont.id = "settings_CONTAINER";
-            newSettingsCont.classList.add("newsettings")
+        const newSettingsCont = document.createElement("div");
+        newSettingsCont.id = "settings_CONTAINER";
+        newSettingsCont.classList.add("newsettings")
 
-            newSettingsCont.innerHTML = `
+        newSettingsCont.innerHTML = `
             <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION}</span>
         <span>Script Settings</span>
         <div class="ns-wrapcolumn">
@@ -1193,254 +1346,198 @@
         </div>
             `;
 
-            document.body.append(newSettingsCont)
-            newSettingsCont.style.display = "none"
+        document.body.append(newSettingsCont)
+        newSettingsCont.style.display = "none"
 
-            // toggle isSettingsVisible
-            settingsOpenBT.addEventListener("click", () => {
-                if (isSettingsVisible) {
-                    newSettingsCont.style.display = "none"
-                    isSettingsVisible = false;
-                } else {
-                    newSettingsCont.style.display = "flex"
-                    isSettingsVisible = true;
-                }
-            })
-
-            document.getElementById("settings_LOOKUP1").addEventListener("change", () => {
-                lookupCooldown = true;
-            });
-
-
-            var setting_OPT9 = document.getElementById("settings_OPT9");
-            setting_OPT9.style.borderColor = Settings.ShowActiveBookingStats == true ? "green" : "red";
-
-            setting_OPT9.addEventListener("click", () => {
-                if (Settings.ShowActiveBookingStats) {
-                    Settings.ShowActiveBookingStats = false;
-                    setting_OPT9.style.borderColor = "red";
-
-                    document.getElementById("statsNEWAPP").remove();
-                    document.getElementById("statsNEW").remove();
-                    document.getElementById("statsACCEPTED").remove();
-                    document.getElementById("statsARRIVED").remove();
-                    document.getElementById("statsSTARTED").remove();
-                    document.getElementById("statsNEAREND").remove();
-                } else {
-                    Settings.ShowActiveBookingStats = true;
-                    setting_OPT9.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT8 = document.getElementById("settings_OPT8");
-            setting_OPT8.style.borderColor = Settings.WhatsappTagsSystem == true ? "green" : "red";
-
-            setting_OPT8.addEventListener("click", () => {
-                if (Settings.WhatsappTagsSystem) {
-                    Settings.WhatsappTagsSystem = false;
-                    setting_OPT8.style.borderColor = "red";
-
-                    var all = document.querySelectorAll('select[iswsptaglist="true"]')
-
-                    all.forEach(element => {
-                        element.remove();
-                    });
-
-                    var all2 = document.querySelectorAll('[alreadyHasTags="true"]')
-
-                    all2.forEach(element => {
-                        element.setAttribute("alreadyHasTags", "false");
-                    });
-
-                } else {
-                    Settings.WhatsappTagsSystem = true;
-                    setting_OPT8.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT7 = document.getElementById("settings_OPT7");
-            setting_OPT7.style.borderColor = Settings.ShowAssignDriverBeforehand == true ? "green" : "red";
-
-            setting_OPT7.addEventListener("click", () => {
-                if (Settings.ShowAssignDriverBeforehand) {
-                    Settings.ShowAssignDriverBeforehand = false;
-                    setting_OPT7.style.borderColor = "red";
-
-                    var all = document.querySelectorAll('span[isdrivertag="true"]')
-
-                    all.forEach(element => {
-                        element.remove();
-                    });
-                } else {
-                    Settings.ShowAssignDriverBeforehand = true;
-                    setting_OPT7.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT1 = document.getElementById("settings_OPT1");
-            setting_OPT1.style.borderColor = Settings.SoundPlayWhenNew == true ? "green" : "red";
-
-            setting_OPT1.addEventListener("click", () => {
-                if (Settings.SoundPlayWhenNew) {
-                    Settings.SoundPlayWhenNew = false;
-                    setting_OPT1.style.borderColor = "red";
-                } else {
-                    Settings.SoundPlayWhenNew = true;
-                    setting_OPT1.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT2 = document.getElementById("settings_OPT2");
-            setting_OPT2.style.borderColor = Settings.CheckForAppTripsDefault == true ? "green" : "red";
-
-            setting_OPT2.addEventListener("click", () => {
-                if (Settings.CheckForAppTripsDefault) {
-                    Settings.CheckForAppTripsDefault = false;
-                    nameTrips.pop();
-
-                    setting_OPT2.style.borderColor = "red";
-                } else {
-                    Settings.CheckForAppTripsDefault = true;
-                    nameTrips.push("App Passenger");
-
-                    setting_OPT2.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT3 = document.getElementById("settings_OPT3");
-            setting_OPT3.style.borderColor = Settings.TimeAlertsForAppTrips == true ? "green" : "red";
-
-            setting_OPT3.addEventListener("click", () => {
-                if (Settings.TimeAlertsForAppTrips) {
-                    Settings.TimeAlertsForAppTrips = false;
-                    setting_OPT3.style.borderColor = "red";
-                } else {
-                    Settings.TimeAlertsForAppTrips = true;
-                    setting_OPT3.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT4 = document.getElementById("settings_OPT4");
-            setting_OPT4.style.borderColor = Settings.ShowConsoleLogs == true ? "green" : "red";
-
-            setting_OPT4.addEventListener("click", () => {
-                if (Settings.ShowConsoleLogs) {
-                    console.log("!! SETTINGS: DISABLING CONSOLE LOGS !!");
-                    console.log = function () { };
-
-                    Settings.ShowConsoleLogs = false;
-                    setting_OPT4.style.borderColor = "red";
-                } else {
-                    console.log = originalConsoleLog;
-                    console.log("!! SETTINGS: RE-ENABLING CONSOLE LOGS !!")
-
-                    Settings.ShowConsoleLogs = true;
-                    setting_OPT4.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT5 = document.getElementById("settings_OPT5");
-            setting_OPT5.style.borderColor = Settings.Always100Trips == true ? "green" : "red";
-
-            setting_OPT5.addEventListener("click", () => {
-                if (Settings.Always100Trips) {
-                    Settings.Always100Trips = false;
-                    setting_OPT5.style.borderColor = "red";
-                } else {
-                    Settings.Always100Trips = true;
-                    setting_OPT5.style.borderColor = "green";
-                }
-            })
-
-            var setting_OPT6 = document.getElementById("settings_OPT6");
-            setting_OPT6.style.borderColor = Settings.HighlightTodaysTrips == true ? "green" : "red";
-
-            setting_OPT6.addEventListener("click", () => {
-                if (Settings.HighlightTodaysTrips) {
-                    Settings.HighlightTodaysTrips = false;
-                    setting_OPT6.style.borderColor = "red";
-                } else {
-                    Settings.HighlightTodaysTrips = true;
-                    setting_OPT6.style.borderColor = "green";
-                }
-            })
-        } else {
-            if (Settings.ButtonSoundPlayWhenNew) {
-                const buttonID = "playNewBT";
-                //toggle variable is playNew
-
-                const newCheckButton = document.createElement('button');
-                newCheckButton.id = buttonID;
-                newCheckButton.innerText = "Ping NEW Trips";
-                newCheckButton.style.outlineColor = Settings.SoundPlayWhenNew == true ? "green" : "red";
-
-                newCheckButton.classList.add("setting-buttonbase");
-                newCheckButton.classList.add("setting-newchecker");
-
-                newCheckButton.addEventListener("click", () => {
-                    if (Settings.SoundPlayWhenNew) {
-                        Settings.SoundPlayWhenNew = false;
-                        newCheckButton.style.outlineColor = "red";
-                    } else {
-                        Settings.SoundPlayWhenNew = true;
-                        newCheckButton.style.outlineColor = "green";
-                    }
-                })
-
-                document.body.append(newCheckButton);
+        // toggle isSettingsVisible
+        settingsOpenBT.addEventListener("click", () => {
+            if (isSettingsVisible) {
+                newSettingsCont.style.display = "none"
+                isSettingsVisible = false;
+            } else {
+                newSettingsCont.style.display = "flex"
+                isSettingsVisible = true;
             }
+        })
 
-            if (Settings.AppTripsToggleButton) {
-                const buttonID = "appTripsBT";
-                //toggle variable is checkForAppTrips
+        document.getElementById("settings_LOOKUP1").addEventListener("change", () => {
+            lookupCooldown = true;
+        });
 
-                const appTripsButton = document.createElement('button');
-                appTripsButton.id = buttonID;
-                appTripsButton.innerText = "Check for App Trips";
-                appTripsButton.style.outlineColor = Settings.CheckForAppTripsDefault == true ? "green" : "red";
 
-                appTripsButton.classList.add("setting-buttonbase");
-                appTripsButton.classList.add("setting-checkapptrips");
+        var setting_OPT9 = document.getElementById("settings_OPT9");
+        setting_OPT9.style.borderColor = Settings.ShowActiveBookingStats == true ? "green" : "red";
 
-                appTripsButton.addEventListener("click", () => {
-                    if (Settings.CheckForAppTripsDefault) {
-                        Settings.CheckForAppTripsDefault = false;
-                        nameTrips.pop();
+        setting_OPT9.addEventListener("click", () => {
+            if (Settings.ShowActiveBookingStats) {
+                Settings.ShowActiveBookingStats = false;
+                setting_OPT9.style.borderColor = "red";
 
-                        appTripsButton.style.outlineColor = "red";
-                    } else {
-                        Settings.CheckForAppTripsDefault = true;
-                        nameTrips.push("App Passenger");
-
-                        appTripsButton.style.outlineColor = "green";
-                    }
-                })
-
-                document.body.append(appTripsButton);
+                document.getElementById("statsNEWAPP").remove();
+                document.getElementById("statsNEW").remove();
+                document.getElementById("statsACCEPTED").remove();
+                document.getElementById("statsARRIVED").remove();
+                document.getElementById("statsSTARTED").remove();
+                document.getElementById("statsNEAREND").remove();
+            } else {
+                Settings.ShowActiveBookingStats = true;
+                setting_OPT9.style.borderColor = "green";
             }
-        }
+        })
 
+        var setting_OPT8 = document.getElementById("settings_OPT8");
+        setting_OPT8.style.borderColor = Settings.WhatsappTagsSystem == true ? "green" : "red";
 
-        if (Settings.NotificationWhenArrived) {
-            if (Notification.permission !== "granted") {
-                const buttonID = "allowNotifsBT"
+        setting_OPT8.addEventListener("click", () => {
+            if (Settings.WhatsappTagsSystem) {
+                Settings.WhatsappTagsSystem = false;
+                setting_OPT8.style.borderColor = "red";
 
-                const allowNotifsButton = document.createElement('button');
-                allowNotifsButton.id = buttonID;
-                allowNotifsButton.innerText = "Allow Notifs";
-                allowNotifsButton.style.outlineColor = "yellow";
+                var all = document.querySelectorAll('select[iswsptaglist="true"]')
 
-                allowNotifsButton.classList.add("setting-buttonbase");
-                allowNotifsButton.style.inset = "auto 580px 30px auto"
+                all.forEach(element => {
+                    element.remove();
+                });
 
-                allowNotifsButton.addEventListener("click", () => {
-                    let promise = Notification.requestPermission();
+                var all2 = document.querySelectorAll('[alreadyHasTags="true"]')
 
-                    allowNotifsButton.remove();
-                })
+                all2.forEach(element => {
+                    element.setAttribute("alreadyHasTags", "false");
+                });
 
-                document.body.append(allowNotifsButton);
+            } else {
+                Settings.WhatsappTagsSystem = true;
+                setting_OPT8.style.borderColor = "green";
             }
+        })
+
+        var setting_OPT7 = document.getElementById("settings_OPT7");
+        setting_OPT7.style.borderColor = Settings.ShowAssignDriverBeforehand == true ? "green" : "red";
+
+        setting_OPT7.addEventListener("click", () => {
+            if (Settings.ShowAssignDriverBeforehand) {
+                Settings.ShowAssignDriverBeforehand = false;
+                setting_OPT7.style.borderColor = "red";
+
+                var all = document.querySelectorAll('span[isdrivertag="true"]')
+
+                all.forEach(element => {
+                    element.remove();
+                });
+            } else {
+                Settings.ShowAssignDriverBeforehand = true;
+                setting_OPT7.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT1 = document.getElementById("settings_OPT1");
+        setting_OPT1.style.borderColor = Settings.SoundPlayWhenNew == true ? "green" : "red";
+
+        setting_OPT1.addEventListener("click", () => {
+            if (Settings.SoundPlayWhenNew) {
+                Settings.SoundPlayWhenNew = false;
+                setting_OPT1.style.borderColor = "red";
+            } else {
+                Settings.SoundPlayWhenNew = true;
+                setting_OPT1.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT2 = document.getElementById("settings_OPT2");
+        setting_OPT2.style.borderColor = Settings.CheckForAppTripsDefault == true ? "green" : "red";
+
+        setting_OPT2.addEventListener("click", () => {
+            if (Settings.CheckForAppTripsDefault) {
+                Settings.CheckForAppTripsDefault = false;
+                nameTrips.pop();
+
+                setting_OPT2.style.borderColor = "red";
+            } else {
+                Settings.CheckForAppTripsDefault = true;
+                nameTrips.push("App Passenger");
+
+                setting_OPT2.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT3 = document.getElementById("settings_OPT3");
+        setting_OPT3.style.borderColor = Settings.TimeAlertsForAppTrips == true ? "green" : "red";
+
+        setting_OPT3.addEventListener("click", () => {
+            if (Settings.TimeAlertsForAppTrips) {
+                Settings.TimeAlertsForAppTrips = false;
+                setting_OPT3.style.borderColor = "red";
+            } else {
+                Settings.TimeAlertsForAppTrips = true;
+                setting_OPT3.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT4 = document.getElementById("settings_OPT4");
+        setting_OPT4.style.borderColor = Settings.ShowConsoleLogs == true ? "green" : "red";
+
+        setting_OPT4.addEventListener("click", () => {
+            if (Settings.ShowConsoleLogs) {
+                console.log("!! SETTINGS: DISABLING CONSOLE LOGS !!");
+                console.log = function () { };
+
+                Settings.ShowConsoleLogs = false;
+                setting_OPT4.style.borderColor = "red";
+            } else {
+                console.log = originalConsoleLog;
+                console.log("!! SETTINGS: RE-ENABLING CONSOLE LOGS !!")
+
+                Settings.ShowConsoleLogs = true;
+                setting_OPT4.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT5 = document.getElementById("settings_OPT5");
+        setting_OPT5.style.borderColor = Settings.Always100Trips == true ? "green" : "red";
+
+        setting_OPT5.addEventListener("click", () => {
+            if (Settings.Always100Trips) {
+                Settings.Always100Trips = false;
+                setting_OPT5.style.borderColor = "red";
+            } else {
+                Settings.Always100Trips = true;
+                setting_OPT5.style.borderColor = "green";
+            }
+        })
+
+        var setting_OPT6 = document.getElementById("settings_OPT6");
+        setting_OPT6.style.borderColor = Settings.HighlightTodaysTrips == true ? "green" : "red";
+
+        setting_OPT6.addEventListener("click", () => {
+            if (Settings.HighlightTodaysTrips) {
+                Settings.HighlightTodaysTrips = false;
+                setting_OPT6.style.borderColor = "red";
+            } else {
+                Settings.HighlightTodaysTrips = true;
+                setting_OPT6.style.borderColor = "green";
+            }
+        })
+    }
+
+    if (Settings.NotificationWhenArrived) {
+        if (Notification.permission !== "granted") {
+            const buttonID = "allowNotifsBT"
+
+            const allowNotifsButton = document.createElement('button');
+            allowNotifsButton.id = buttonID;
+            allowNotifsButton.innerText = "Allow Notifs";
+            allowNotifsButton.style.outlineColor = "yellow";
+
+            allowNotifsButton.classList.add("setting-buttonbase");
+            allowNotifsButton.style.inset = "auto 580px 30px auto"
+
+            allowNotifsButton.addEventListener("click", () => {
+                let promise = Notification.requestPermission();
+
+                allowNotifsButton.remove();
+            })
+
+            document.body.append(allowNotifsButton);
         }
     }
 
@@ -1522,6 +1619,53 @@
 
     function getDataFromTrip(row) {
 
+        /*
+        00 CANCEL
+        01 SEE TRIP INFO
+        02 BOOKING DATE
+        03 BOOKING STATUS
+        04 CALLED CELL
+        05 PASSENGER NAME
+        06 PASSENGER MOBILE PHONE
+        07 ASSIGN DRIVER
+        08 CAR DETAILS
+        09 PICKUP ADDRESS
+        10 INITIAL PICKUP ADDRESS
+        11 DROP OFF ADDRESS
+        12 INITIAL DROP ADDRESS
+        13 CREATED BY
+        14 TRIP ACCEPTED TIME
+        15 CONFIRM ARRIVED TIME
+        16 TRIP STARTED TIME
+        17 VEHICLE TYPE
+        18 PAYMENT MODE
+        19 SPECIAL PAYMENTS (ZELLE)
+        20 CASH PAYMENT AMOUNT $
+        21 WALLET PAYMENT AMOUNT $
+        22 PASSENGER DISCOUNT TOTAL
+        23 PASSENGER DISCOUNT DRIVER APPLY CHECK
+        24 LOCATION RULE TOTAL
+        25 LOCATION RULE TYPE
+        26 LOCATION RULE DRIVER APPLY CHECK
+        27 TRIP COST $
+        28 PASSENGER TRANSACTION COST $
+        29 FARE ESTIMATE $
+        30 +PASSENGER $
+        31 +STOP $
+        32 +OTHER TRIP $
+        33 PREMIUM SERVICES (?)
+        34 FARE ESTIMATE DISTANCE (mi)
+        35 CUSTOM TRIP COST CHECK
+        36 BOOK LATER CHECK
+        37 GUEST CHECK
+        38 PENALTY $
+        39 GUEST VOUCHER VALUE $
+        40 SELECTED DRIVER
+        41 IS DROP ADDRESS EDITED CHECK
+        42 DROP ADDRESS EDITED BY
+        43 APPROVED BY (XX)
+        */
+
         const cells = row.querySelectorAll('td[role="cell"]');
         const raw1 = cells[2]?.textContent.trim(); // "MM/DD/YYYY, 2:02:00 PM"
 
@@ -1540,8 +1684,8 @@
         var tripArrivedT = cells[15]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
         var tripStartedT = cells[16]?.textContent.trim().replace(/^\[\d+m\]\s*/, '');
         var paymentType = cells[18]?.textContent.trim()
-        var isBookLater = cells[35]?.querySelector(cellCheckQuery);
-        var selectedDriver = cells[39]?.querySelector('span')?.textContent.trim()
+        var isBookLater = cells[36]?.querySelector(cellCheckQuery);
+        var selectedDriver = cells[40]?.querySelector('span')?.textContent.trim()
 
         const tripTag = row.querySelector(arrivedText);
         const tripStatus = tripTag.textContent;
@@ -1660,6 +1804,15 @@
 })();
 
 /*
+4.23
+[fixes]
+- fixed some functions like select driver and booking icon not working because of a new cell on trips
+
+[tweaks]
+- changed the book later icon
+- test driver or developer trips are ignored now
+- cleaned up some extra variables and unused leftover code from old versions
+
 4.21
 [features]
 - script now updates and loads automatically from github
