@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.3"
+    const SCRIPT_VERSION = "v4.4"
 
     const SET_PROFILE = 2
 
@@ -30,6 +30,7 @@
             ],
 
             SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
+            SoundPlayWhenNewApp: true,          // play a sound when highlighted app trip is on new
             SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
             SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
 
@@ -86,12 +87,14 @@
 
             WhatsappTagList: [                  // tags for the whatsapp chats
                 "COTIZANDO VIAJE",
-                "VIAJE EN CAMINO",
-                "VIAJE EN DOUBLE TRIP",
+                "TAXI EN CAMINO",
+                "DOUBLE TRIP",
                 "VIAJE RESERVADO",
                 "VIAJE COMENZADO",
                 "CHAT DE SOPORTE",
-                "MANTENER CHAT ABIERTO"
+                "MANTENER CHAT ABIERTO",
+                "PENDIENTE ENVIAR SERVICIO",
+                "",
             ],
 
             ShowActiveBookingStats: true,       // show statistics alongisde the Current and Today bookings displaying number of New, Accepted, and Started trips
@@ -125,6 +128,7 @@
             ],
 
             SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
+            SoundPlayWhenNewApp: true,          // play a sound when highlighted app trip is on new
             SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
             SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
 
@@ -273,14 +277,53 @@
 
     var style = document.createElement('style');
     style.type = 'text/css';
+    style.id = "dark-mode-custom-style";
     style.innerHTML = `
     .filterGlow {
-        filter: brightness(150%);
+        filter: brightness(150%) contrast(120%);
+        outline: 2px dashed #FFF !important;
     }
 
     .booksStatisticsCont {
         cursor: pointer;
         user-select: none;
+    }
+        
+    .selectedDriverTagBadOutline {
+      border: 2px solid #af0b0b !important;
+    }
+        
+    .selectedDriverTagGoodOutline {
+      border: 2px solid #26aa1a !important;
+    }
+
+    .refreshButtonClass {
+        box-shadow: var(--shadow1);
+        position: fixed;
+        z-index: 99;
+        inset: auto 180px 30px auto;
+        width: 50px;
+        height: 45px;
+
+        text-align: center;
+        font-family: "Segoe UI";
+        font-weight: bold;
+        justify-content: center;
+
+        padding: 6px;
+        background: var(--native-dark-bg-color);
+        color: white;
+
+        border-radius: 6px;
+        outline: 2px solid #a8fab9;
+        border: none;
+
+        transition: 0.2s all ease-in-out;
+    }
+
+    .refreshButtonClass:hover {
+        cursor: pointer;
+        filter: brightness(120%);
     }
     `;
     document.getElementsByTagName('head')[0].appendChild(style);
@@ -449,7 +492,7 @@
         }
     }
 
-    var statistics = [0, 0, 0, 0, 0, 0]; // newNorm newApp accepted arrived started reachedpaid/reachedpaidextra
+    var statistics = [0, 0, 0, 0, 0, 0, 0]; // newNorm newApp accepted arrived started reachedpaid/reachedpaidextra ALL
 
     const numBlacklist = [
         "431435555",
@@ -473,7 +516,7 @@
 
         if (query == "new") {
             firstChecker = 0;
-            statistics = [0, 0, 0, 0, 0, 0]
+            statistics = [0, 0, 0, 0, 0, 0, 0]
 
             urldata = window.location.href;
 
@@ -695,7 +738,7 @@
                                 newtripSound.play();
                             }
 
-                            if (Settings.SoundPlayWhenNew && reviewingApp && Settings.CheckForAppTripsDefault) {
+                            if (Settings.SoundPlayWhenNewApp && reviewingApp) {
                                 newAppTripSound.play();
                             }
                         }
@@ -717,6 +760,14 @@
 
                                     const queryDuplicates = document.querySelectorAll(`span[isdrivertag="true"][driverid="${driverID}"]`)
                                     duplicateTagsUpd(queryDuplicates);
+
+                                    if (driversName !== "--") {
+                                        if (driversName == selectedDriver) {
+                                            tagElement.style.border = "2px solid #26aa1a"
+                                        } else {
+                                            tagElement.style.border = "2px solid #af0b0b";
+                                        }
+                                    }
                                 } else {
                                     var driverID = selectedDriver.replace(/\s/g, '');
                                     const queryDuplicates = document.querySelectorAll(`span[isdrivertag="true"][driverid="${driverID}"]`)
@@ -725,6 +776,14 @@
                                     if (!actionTaken && tagElement.classList.contains("selectedDriverTagDupe")) {
                                         tagElement.classList.remove("selectedDriverTagDupe");
                                         tagElement.classList.add("selectedDriverTag");
+                                    }
+
+                                    if (driversName !== "--") {
+                                        if (driversName == selectedDriver) {
+                                            tagElement.style.border = "2px solid #26aa1a"
+                                        } else {
+                                            tagElement.style.border = "2px solid #af0b0b";
+                                        }
                                     }
                                 }
                             }
@@ -744,6 +803,8 @@
                         statistics[5] += tripStatus == "REACHED" ? 1 : 0;
                         statistics[5] += tripStatus == "PAID" ? 1 : 0;
                         statistics[5] += tripStatus == "REACHEDEXTRA" ? 1 : 0;
+
+                        statistics[6] += 1;
 
 
                         if ( //what is ts braa  
@@ -1084,6 +1145,59 @@
                 }
             })
 
+            if (!document.getElementById("shortcutRefresh")) {
+                const refreshID = "shortcutRefresh";
+
+                const refreshButton = document.createElement('button');
+                refreshButton.id = refreshID;
+
+                const iconImage = document.createElement('img');
+                iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik04NC41MzkgMjEuNTg2YTEuNTE1IDEuNTE1IDAgMCAwLTIuMzkzLTEuMjIybC01Ljk0NCA0LjI2MWwtLjQ2OC4zMzdjLTYuNDA1LTYuMzkyLTE1LjE5Ni0xMC4zODktMjQuOTM3LTEwLjM4OWMtMTkuNTM1IDAtMzUuNDI3IDE1Ljg5NC0zNS40MjcgMzUuNDI4czE1Ljg5MyAzNS40MjggMzUuNDI3IDM1LjQyOGEzNS40MiAzNS40MiAwIDAgMCAyOS4zNzQtMTUuNjE4YTEuNzcgMS43NyAwIDAgMC0uNDc1LTIuNDYybC04Ljg2My02LjE1MWExLjkgMS45IDAgMCAwLTIuNjI4LjUxMmMtMy45MTggNS43OTItMTAuNDEgOS4yNS0xNy4zNzUgOS4yNWMtMTEuNTU4IDAtMjAuOTYyLTkuNDAyLTIwLjk2Mi0yMC45NTdzOS40MDQtMjAuOTU3IDIwLjk2Mi0yMC45NTdjNC44NzggMCA5LjM1MiAxLjY5NiAxMi45MTQgNC41bC0xLjAwMS43MmwtNS45NDggNC4yNmExLjUxMyAxLjUxMyAwIDAgMCAuMzk3IDIuNjU2bDI1LjQ0NiA4LjY2OWMuNDYxLjE2MS45NjYuMDgzIDEuMzY4LS4yMDNjLjM5OS0uMjkuNjI5LS43NDcuNjI3LTEuMjMxeiIvPjwvc3ZnPg=="
+                iconImage.setAttribute("width", "20px")
+                iconImage.setAttribute("height", "20px")
+
+                refreshButton.style.outlineColor = "white";
+
+                refreshButton.classList.add("refreshButtonClass");
+                refreshButton.style.inset = "auto 350px 30px auto"
+
+                document.body.append(refreshButton);
+                refreshButton.append(iconImage);
+
+
+
+            } else {
+                var list = document.querySelectorAll(".p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh)");
+                var refreshButton = document.getElementById("shortcutRefresh")
+                if (list.length == 2) {
+                    var realRefreshButton = list[1];
+
+                    refreshButton.addEventListener("click", () => {
+                        realRefreshButton.click();
+                    })
+
+                    document.addEventListener("keydown", (e) => {
+                        if (e.altKey && e.key.toLowerCase() === 'x') {
+                            e.preventDefault();
+                            realRefreshButton.click();
+                            refreshButton.style.outline = "4px solid red";
+
+                            setTimeout(() => {
+                                refreshButton.style.outline = "2px solid white";
+                            }, 1000);
+                        }
+                    });
+
+                    refreshButton.addEventListener("mouseenter", () => {
+                        realRefreshButton.style.outline = "2px solid red";
+                    })
+
+                    refreshButton.addEventListener("mouseleave", () => {
+                        realRefreshButton.style.outline = "none";
+                    })
+                }
+            }
+
             // STATISTICS
             if (activeBookButton) {
                 if (Settings.ShowActiveBookingStats) {
@@ -1102,6 +1216,14 @@
                         stats_NewTrips.textContent = "NEW: ?"
                         stats_NewTrips.classList.add("booksStatisticsCont")
                         stats_NewTrips.style.outlineColor = "#ebad28"
+
+                        if (stats_NewTrips_toggled) {
+                            stats_NewTrips.style.background = "#ebad28";
+                            stats_NewTrips.style.color = "#242424";
+                        } else {
+                            stats_NewTrips.style.background = "none";
+                            stats_NewTrips.style.color = "#DCDCDC";
+                        }
 
                         stats_NewTrips.addEventListener("click", () => {
                             if (!stats_NewTrips_toggled) {
@@ -1127,6 +1249,14 @@
                         stats_NewAppTrips.classList.add("booksStatisticsCont")
                         stats_NewAppTrips.style.outlineColor = "#ebad28"
 
+                        if (stats_NewAppTrips_toggled) {
+                            stats_NewAppTrips.style.background = "#ebad28";
+                            stats_NewAppTrips.style.color = "#242424";
+                        } else {
+                            stats_NewAppTrips.style.background = "none";
+                            stats_NewAppTrips.style.color = "#DCDCDC";
+                        }
+
                         stats_NewAppTrips.addEventListener("click", () => {
                             if (!stats_NewAppTrips_toggled) {
                                 stats_NewAppTrips.style.background = "#ebad28";
@@ -1150,6 +1280,14 @@
                         stats_AccTrips.textContent = "ACCEPTED: ?"
                         stats_AccTrips.classList.add("booksStatisticsCont")
                         stats_AccTrips.style.outlineColor = "#5174d4"
+
+                        if (stats_AccTrips_toggled) {
+                            stats_AccTrips.style.background = "#5174d4";
+                            stats_AccTrips.style.color = "#242424";
+                        } else {
+                            stats_AccTrips.style.background = "none";
+                            stats_AccTrips.style.color = "#DCDCDC";
+                        }
 
                         stats_AccTrips.addEventListener("click", () => {
                             if (!stats_AccTrips_toggled) {
@@ -1175,6 +1313,14 @@
                         stats_ArrTrips.classList.add("booksStatisticsCont")
                         stats_ArrTrips.style.outlineColor = "#bd3d34"
 
+                        if (stats_ArrTrips_toggled) {
+                            stats_ArrTrips.style.background = "#bd3d34";
+                            stats_ArrTrips.style.color = "#242424";
+                        } else {
+                            stats_ArrTrips.style.background = "none";
+                            stats_ArrTrips.style.color = "#DCDCDC";
+                        }
+
                         stats_ArrTrips.addEventListener("click", () => {
                             if (!stats_ArrTrips_toggled) {
                                 stats_ArrTrips.style.background = "#bd3d34";
@@ -1198,6 +1344,14 @@
                         stats_StaTrips.textContent = "STARTED: ?"
                         stats_StaTrips.classList.add("booksStatisticsCont")
                         stats_StaTrips.style.outlineColor = "#56ad3b"
+
+                        if (stats_StaTrips_toggled) {
+                            stats_StaTrips.style.background = "#56ad3b";
+                            stats_StaTrips.style.color = "#242424";
+                        } else {
+                            stats_StaTrips.style.background = "none";
+                            stats_StaTrips.style.color = "#DCDCDC";
+                        }
 
                         stats_StaTrips.addEventListener("click", () => {
                             if (!stats_StaTrips_toggled) {
@@ -1224,6 +1378,14 @@
                         stats_FinTrips.style.outlineColor = "#407c2e"
                         stats_FinTrips.style.outlineStyle = "dotted";
 
+                        if (stats_FinTrips_toggled) {
+                            stats_FinTrips.style.background = "#407c2e";
+                            stats_FinTrips.style.color = "#242424";
+                        } else {
+                            stats_FinTrips.style.background = "none";
+                            stats_FinTrips.style.color = "#DCDCDC";
+                        }
+
                         stats_FinTrips.addEventListener("click", () => {
                             if (!stats_FinTrips_toggled) {
                                 stats_FinTrips.style.background = "#407c2e";
@@ -1238,15 +1400,28 @@
 
                         parentCont.append(stats_FinTrips);
                     }
+
+
+                    if (!document.getElementById("statsTOTAL")) {
+                        const stats_TotTrips = document.createElement("span");
+                        stats_TotTrips.id = "statsTOTAL";
+
+                        stats_TotTrips.textContent = "TOTAL: ?"
+                        stats_TotTrips.classList.add("booksStatisticsCont")
+                        stats_TotTrips.style.outlineColor = "#9ca0a7"
+                        stats_TotTrips.style.cursor = "default";
+
+                        parentCont.append(stats_TotTrips);
+                    }
                 }
 
+                document.getElementById("statsTOTAL").textContent = "TOTAL: " + statistics[6];
                 document.getElementById("statsNEW").textContent = "NEW: " + statistics[0];
                 document.getElementById("statsNEWAPP").textContent = "NEW APP: " + statistics[1];
                 document.getElementById("statsACCEPTED").textContent = "ACCEPTED: " + statistics[2];
                 document.getElementById("statsARRIVED").textContent = "ARRIVED: " + statistics[3];
                 document.getElementById("statsSTARTED").textContent = "STARTED: " + statistics[4];
                 document.getElementById("statsNEAREND").textContent = "FINISHING: " + statistics[5];
-                console.log("NEAREND: " + statistics[5])
 
                 // higher difference means there's a new arrived trip
                 // lower difference means an arrived trip changed/got canceled
@@ -1270,8 +1445,6 @@
                     arrivedTrips = firstChecker;
                     firstChecker = 0;
                 }
-            } else {
-                toggleOffStatToggles();
             }
 
             if (lookupCooldown) {
@@ -1332,21 +1505,28 @@
         newSettingsCont.classList.add("newsettings")
 
         newSettingsCont.innerHTML = `
-            <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION}</span>
+            <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION} | Profile ${SET_PROFILE}</span>
         <span>Script Settings</span>
         <div class="ns-wrapcolumn">
             <span class="ns-row" id="settings_OPT1">
                 <img src="
                 data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0yMC42NjQgMy40NzhMOCA4djdsLjc0OC4yNjdsLTEuMTI3IDIuMjU0YTIgMiAwIDAgMCAxLjE1NiAyLjc5Mmw0LjA4NCAxLjM2MWEyLjAxNSAyLjAxNSAwIDAgMCAyLjQyMS0xLjAwM2wxLjMwMy0yLjYwNmw0LjA3OSAxLjQ1N0ExIDEgMCAwIDAgMjIgMTguNTgxVjQuNDE5YTEgMSAwIDAgMC0xLjMzNi0uOTQxbS03LjE3MSAxNi4yOTlMOS40MSAxOC40MTZsMS4yMzUtMi40NzFsNC4wNDIgMS40NDR6TTQgMTVoMlY4SDRjLTEuMTAzIDAtMiAuODk3LTIgMnYzYzAgMS4xMDMuODk3IDIgMiAyIi8+PC9zdmc+
                 " width="20px" height="20px">
-                Ping NEW Trips
+                Ping New OWN Trips
+            </span>
+            
+            <span class="ns-row" id="settings_OPT10">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIj48cGF0aCBmaWxsPSIjZmZmZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMy40NCAyLjVhMiAyIDAgMSAxIDQgMHYyLjgyNGEyIDIgMCAxIDEtNCAwem0tMTYuMDUgMTZhMiAyIDAgMCAwIDIgMmgyLjgzMWEyIDIgMCAwIDAgMC00SDkuMzlhMiAyIDAgMCAwLTIgMm0zNy4zNiAwYTIgMiAwIDAgMS0yIDJoLTIuODMyYTIgMiAwIDAgMSAwLTRoMi44MzJhMiAyIDAgMCAxIDIgMk0xMi42NzQgNS43NzVhMS45OSAxLjk5IDAgMCAwIDAgMi44MjVsMi4wMDIgMS45OTZjLjc4Mi43OCAyLjA1Ljc4IDIuODMzIDBhMS45OTMgMS45OTMgMCAwIDAgMC0yLjgyNGwtMi4wMDMtMS45OTdhMi4wMDcgMi4wMDcgMCAwIDAtMi44MzIgMG0yNi4wOTQgMi4zODdhMS45OTMgMS45OTMgMCAwIDAgMC0yLjgyNGEyLjAwNyAyLjAwNyAwIDAgMC0yLjgzMyAwbC0yLjAwMyAxLjk5NmExLjk5MyAxLjk5MyAwIDAgMCAwIDIuODI0Yy43ODMuNzggMi4wNS43OCAyLjgzMyAwek0yMy44MjIgMTguNTg5Yy03LjAzNSA2LjUxNy0xMy41OSAxMy4xOS0xNi4zMDIgMTUuOTg2Yy0uMjg0LjI5Mi0uMzIyLjY1LS4yMDYuOTE1Yy4yNC41NDYuNTA3IDEuMTAyLjc2NSAxLjU0N3MuNjA3Ljk1My45NjEgMS40MzRjLjE3NC4yMzUuNTExLjM4NC45MTIuMjg0YzMuNzgtLjk0MiAxMi44MzktMy4yNjEgMjIuMDA3LTYuMDcyYy0uNjQtMS41MjYtMS43ODMtMy45NDgtMy43NDQtNy4zMzVjLTEuODkzLTMuMjY5LTMuMzg3LTUuNDMtNC4zOTMtNi43Nk0yOSA5LjE1MmwtLjc3NC43MXphMiAyIDAgMCAwLTMuMjQzIDIuMjg3QzE3LjAyIDE5LjE2MiA3Ljk1NSAyOC4zOCA0LjY0OCAzMS43ODljLTEuMzMzIDEuMzc2LTEuODEzIDMuNDUyLS45OTYgNS4zMTFjLjI2OC42MDguNjAyIDEuMzE0Ljk2NSAxLjk0MmMuMzY0LjYyNi44MSAxLjI2OCAxLjIwNSAxLjgwM2MxLjIwNCAxLjYzMyAzLjI0IDIuMjU0IDUuMDk3IDEuNzkxYy42OTktLjE3NCAxLjU4LS4zOTUgMi42MS0uNjU5bC4xNTEuNTY1Yy45NiAzLjU3MiA0LjYzOSA1LjY4MyA4LjIxIDQuNzNjMy41NzMtLjk1NSA1LjcwMy00LjYyMiA0Ljc0Mi04LjE5NmwtLjE2LS41OTljNC4xLTEuMTczIDguNS0yLjQ5OSAxMi42OS0zLjg5MmEyIDIgMCAwIDAgMy42LTEuNjdsLS45OTYuMzE2bC45OTUtLjMxN3YtLjAwMWwtLjAwMi0uMDAzbC0uMDAxLS4wMDZsLS4wMDYtLjAxNmwtLjAxNi0uMDQ4bC0uMDU0LS4xNTZxLS4wNy0uMTk3LS4yMTQtLjU2OGMtLjE5NC0uNDk0LS41LTEuMjI2LS45NTctMi4yMThjLS45MTUtMS45ODQtMi40NDEtNS4wMTQtNC45MTEtOS4yOHMtNC4zNC03LjA5Ny01LjYwNi04Ljg3OWE0MyA0MyAwIDAgMC0xLjQ0OC0xLjkzNWExOSAxOSAwIDAgMC0uNDk1LS41OTRsLS4wMzMtLjAzN2wtLjAxMi0uMDEzbC0uMDA0LS4wMDVMMjkgOS4xNTNNMjIuNjIgMzkuNTZjLTEuODY4LjUxNi0zLjYyNy45OS01LjIyIDEuNDFsLjE0My41MzRhMi43MDYgMi43MDYgMCAwIDAgMy4zMTUgMS45MDNhMi42OSAyLjY5IDAgMCAwIDEuOTExLTMuMjkzeiIgY2xpcC1ydWxlPSJldmVub2RkIi8+PC9zdmc+
+                " width="20px" height="20px">
+                Ping New APP Trips
             </span>
 
             <span class="ns-row" id="settings_OPT2">
                 <img src="
                 data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNyAxOUg3VjVoMTBtMC00SDdjLTEuMTEgMC0yIC44OS0yIDJ2MThhMiAyIDAgMCAwIDIgMmgxMGEyIDIgMCAwIDAgMi0yVjNhMiAyIDAgMCAwLTItMiIvPjwvc3ZnPg==
                 " width="20px" height="20px">
-                Check for App Trips
+                Highlight App Trips
             </span>
 
             <span class="ns-row" id="settings_OPT3">
@@ -1425,6 +1605,18 @@
             lookupCooldown = true;
         });
 
+        var setting_OPT10 = document.getElementById("settings_OPT10");
+        setting_OPT10.style.borderColor = Settings.SoundPlayWhenNewApp == true ? "green" : "red";
+
+        setting_OPT10.addEventListener("click", () => {
+            if (Settings.SoundPlayWhenNewApp) {
+                Settings.SoundPlayWhenNewApp = false;
+                setting_OPT10.style.borderColor = "red";
+            } else {
+                Settings.SoundPlayWhenNewApp = true;
+                setting_OPT10.style.borderColor = "green";
+            }
+        })
 
         var setting_OPT9 = document.getElementById("settings_OPT9");
         setting_OPT9.style.borderColor = Settings.ShowActiveBookingStats == true ? "green" : "red";
@@ -1875,6 +2067,18 @@
 })();
 
 /*
+4.4
+[features]
+- added a new statistic that shows total active bookings number
+- new shortcut to refresh bookings (also triggers with Alt + X)
+- can now toggle the NEW ping separately from one's trips and app trips
+
+[tweaks]
+- made the statistic highlight style more unique and noticeable
+
+[fixes]
+- when statistics reappear and they were toggled to highlight before it will now adjust visually automatically
+
 4.3
 [features]
 - added highlighting trips with booking statistics
