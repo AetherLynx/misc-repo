@@ -761,11 +761,11 @@
                                     const queryDuplicates = document.querySelectorAll(`span[isdrivertag="true"][driverid="${driverID}"]`)
                                     duplicateTagsUpd(queryDuplicates);
 
-                                    if (driversName !== "--") {
+                                    if (driversName) {
                                         if (driversName == selectedDriver) {
-                                            tagElement.style.border = "2px solid #26aa1a"
+                                            tagElement.style.border = "2px solid #41833b"
                                         } else {
-                                            tagElement.style.border = "2px solid #af0b0b";
+                                            tagElement.style.border = "2px solid #7e2626";
                                         }
                                     }
                                 } else {
@@ -2069,6 +2069,7 @@
 /*
 4.4
 [features]
+- selected driver now shows green/red if selected driver matches
 - added a new statistic that shows total active bookings number
 - new shortcut to refresh bookings (also triggers with Alt + X)
 - can now toggle the NEW ping separately from one's trips and app trips
