@@ -2075,6 +2075,7 @@
 4.41
 [tweaks]
 - made refresh button get removed if it can't get the og refresh button for clean-ness
+- changed keybind to refresh button from Alt + X to Ctrl + X because ALT triggers navigation
 
 4.4
 [features]
