@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.4"
+    const SCRIPT_VERSION = "v4.41"
 
     const SET_PROFILE = 2
 
@@ -588,6 +588,10 @@
                 }
             }
 
+            if (urldata !== TripsPageURL && document.getElementById("shortcutRefresh")) {
+                document.getElementById("shortcutRefresh").remove();
+            }
+
             if (window.location.href !== TripsPageURL) return;
 
             const activeBookButton = document.querySelector('button[aria-label="Active"].p-button.p-component.p-disabled.p-button-secondary')
@@ -1146,26 +1150,27 @@
             })
 
             if (!document.getElementById("shortcutRefresh")) {
-                const refreshID = "shortcutRefresh";
+                var list = document.querySelectorAll(".p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh)");
 
-                const refreshButton = document.createElement('button');
-                refreshButton.id = refreshID;
+                if (list.length == 2) {
+                    const refreshID = "shortcutRefresh";
 
-                const iconImage = document.createElement('img');
-                iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik04NC41MzkgMjEuNTg2YTEuNTE1IDEuNTE1IDAgMCAwLTIuMzkzLTEuMjIybC01Ljk0NCA0LjI2MWwtLjQ2OC4zMzdjLTYuNDA1LTYuMzkyLTE1LjE5Ni0xMC4zODktMjQuOTM3LTEwLjM4OWMtMTkuNTM1IDAtMzUuNDI3IDE1Ljg5NC0zNS40MjcgMzUuNDI4czE1Ljg5MyAzNS40MjggMzUuNDI3IDM1LjQyOGEzNS40MiAzNS40MiAwIDAgMCAyOS4zNzQtMTUuNjE4YTEuNzcgMS43NyAwIDAgMC0uNDc1LTIuNDYybC04Ljg2My02LjE1MWExLjkgMS45IDAgMCAwLTIuNjI4LjUxMmMtMy45MTggNS43OTItMTAuNDEgOS4yNS0xNy4zNzUgOS4yNWMtMTEuNTU4IDAtMjAuOTYyLTkuNDAyLTIwLjk2Mi0yMC45NTdzOS40MDQtMjAuOTU3IDIwLjk2Mi0yMC45NTdjNC44NzggMCA5LjM1MiAxLjY5NiAxMi45MTQgNC41bC0xLjAwMS43MmwtNS45NDggNC4yNmExLjUxMyAxLjUxMyAwIDAgMCAuMzk3IDIuNjU2bDI1LjQ0NiA4LjY2OWMuNDYxLjE2MS45NjYuMDgzIDEuMzY4LS4yMDNjLjM5OS0uMjkuNjI5LS43NDcuNjI3LTEuMjMxeiIvPjwvc3ZnPg=="
-                iconImage.setAttribute("width", "20px")
-                iconImage.setAttribute("height", "20px")
+                    const refreshButton = document.createElement('button');
+                    refreshButton.id = refreshID;
 
-                refreshButton.style.outlineColor = "white";
+                    const iconImage = document.createElement('img');
+                    iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik04NC41MzkgMjEuNTg2YTEuNTE1IDEuNTE1IDAgMCAwLTIuMzkzLTEuMjIybC01Ljk0NCA0LjI2MWwtLjQ2OC4zMzdjLTYuNDA1LTYuMzkyLTE1LjE5Ni0xMC4zODktMjQuOTM3LTEwLjM4OWMtMTkuNTM1IDAtMzUuNDI3IDE1Ljg5NC0zNS40MjcgMzUuNDI4czE1Ljg5MyAzNS40MjggMzUuNDI3IDM1LjQyOGEzNS40MiAzNS40MiAwIDAgMCAyOS4zNzQtMTUuNjE4YTEuNzcgMS43NyAwIDAgMC0uNDc1LTIuNDYybC04Ljg2My02LjE1MWExLjkgMS45IDAgMCAwLTIuNjI4LjUxMmMtMy45MTggNS43OTItMTAuNDEgOS4yNS0xNy4zNzUgOS4yNWMtMTEuNTU4IDAtMjAuOTYyLTkuNDAyLTIwLjk2Mi0yMC45NTdzOS40MDQtMjAuOTU3IDIwLjk2Mi0yMC45NTdjNC44NzggMCA5LjM1MiAxLjY5NiAxMi45MTQgNC41bC0xLjAwMS43MmwtNS45NDggNC4yNmExLjUxMyAxLjUxMyAwIDAgMCAuMzk3IDIuNjU2bDI1LjQ0NiA4LjY2OWMuNDYxLjE2MS45NjYuMDgzIDEuMzY4LS4yMDNjLjM5OS0uMjkuNjI5LS43NDcuNjI3LTEuMjMxeiIvPjwvc3ZnPg=="
+                    iconImage.setAttribute("width", "20px")
+                    iconImage.setAttribute("height", "20px")
 
-                refreshButton.classList.add("refreshButtonClass");
-                refreshButton.style.inset = "auto 350px 30px auto"
+                    refreshButton.style.outlineColor = "white";
 
-                document.body.append(refreshButton);
-                refreshButton.append(iconImage);
+                    refreshButton.classList.add("refreshButtonClass");
+                    refreshButton.style.inset = "auto 350px 30px auto"
 
-
-
+                    document.body.append(refreshButton);
+                    refreshButton.append(iconImage);
+                }
             } else {
                 var list = document.querySelectorAll(".p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh)");
                 var refreshButton = document.getElementById("shortcutRefresh")
@@ -1177,14 +1182,14 @@
                     })
 
                     document.addEventListener("keydown", (e) => {
-                        if (e.altKey && e.key.toLowerCase() === 'x') {
+                        if (e.ctrlKey && e.key.toLowerCase() === 'x') {
                             e.preventDefault();
                             realRefreshButton.click();
                             refreshButton.style.outline = "4px solid red";
 
                             setTimeout(() => {
                                 refreshButton.style.outline = "2px solid white";
-                            }, 1000);
+                            }, 500);
                         }
                     });
 
@@ -2067,6 +2072,10 @@
 })();
 
 /*
+4.41
+[tweaks]
+- made refresh button get removed if it can't get the og refresh button for clean-ness
+
 4.4
 [features]
 - selected driver now shows green/red if selected driver matches
