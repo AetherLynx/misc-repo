@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.41"
+    const SCRIPT_VERSION = "v4.42"
 
     const SET_PROFILE = 2
 
@@ -22,7 +22,6 @@
             ShowConsoleLogs: false,             // show console logs
             CopyPhoneNumRightClick: true,       // copy phone numbers to clipboard by right clicking them
             CheckForAppTripsDefault: false,     // default option for highlighting app trips
-            AppTripsToggleButton: true,         // display the 'Check For App Trips' button
 
             HighlightTripsFrom: [               // whose trips to highlight in the dashboard
                 "Samuel Martinez",
@@ -119,7 +118,6 @@
             ShowConsoleLogs: false,             // show console logs
             CopyPhoneNumRightClick: true,       // copy phone numbers to clipboard by right clicking them
             CheckForAppTripsDefault: false,     // default option for highlighting app trips
-            AppTripsToggleButton: true,         // display the 'Check For App Trips' button
 
             HighlightTripsFrom: [               // whose trips to highlight in the dashboard
                 "Santiago Martinez",
@@ -144,7 +142,7 @@
             SoundForStartedTrip: "https://audio.jukehost.co.uk/6ZUIedUF2GUwmECTn18c1Llj4AzkF0jn",
             VolumeStartedTrip: 0.4,
 
-            HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
+            HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number
 
             // v2.0 options
 
@@ -1182,7 +1180,7 @@
                     })
 
                     document.addEventListener("keydown", (e) => {
-                        if (e.ctrlKey && e.key.toLowerCase() === 'x') {
+                        if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'x') {
                             e.preventDefault();
                             realRefreshButton.click();
                             refreshButton.style.outline = "4px solid red";
@@ -2072,6 +2070,10 @@
 })();
 
 /*
+4.42
+[tweaks]
+- changed refresh keybind AGAIN to Ctr + Alt + X
+
 4.41
 [tweaks]
 - made refresh button get removed if it can't get the og refresh button for clean-ness
