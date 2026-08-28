@@ -12,9 +12,15 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.42"
+    const SCRIPT_VERSION = "v4.43"
 
-    const SET_PROFILE = 2
+    var SET_PROFILE = 2
+
+    if (!localStorage.getItem("DEBUG_PROFILE")) {
+        localStorage.setItem("DEBUG_PROFILE", SET_PROFILE);
+    } else if (localStorage.getItem("DEBUG_PROFILE")){
+        SET_PROFILE = localStorage.getItem("DEBUG_PROFILE");
+    }
 
     if (SET_PROFILE == 1) {
         var Settings = {
@@ -504,6 +510,10 @@
         "Paquita Ramirez",
     ]
 
+    var toPingNew = false;
+    var toPingNewApp = false;
+    var toPingLookup = false;
+
     /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
     function tickFunction(query) {
         toAlertAccepted = false;
@@ -511,6 +521,10 @@
 
         allChatButtons = [];
         activeBadges = null;
+
+        toPingNew = false;
+        toPingNewApp = false;
+        toPingLookup = false;
 
         if (query == "new") {
             firstChecker = 0;
@@ -612,6 +626,8 @@
                     }
                 }
             }
+
+            /* LOOP - - - LOOP - - - LOOP - - - LOOP - - - LOOP - - - LOOP */
 
             document.querySelectorAll(cancelBtQuery).forEach(button => {
                 const row = button.closest('tr[role="row"]');
@@ -737,11 +753,13 @@
                         } else if (tripStatus == "NEW" && activeBookButton) {
 
                             if (Settings.SoundPlayWhenNew && reviewingOwn) {
-                                newtripSound.play();
+                                toPingNew = true;
+                                //newtripSound.play();
                             }
 
                             if (Settings.SoundPlayWhenNewApp && reviewingApp) {
-                                newAppTripSound.play();
+                                toPingNewApp = true;
+                                //newAppTripSound.play();
                             }
                         }
 
@@ -1089,6 +1107,16 @@
                             var textOnTrip = row.textContent;
                             var match = false;
 
+                            if (lookupData1 == "DEBUG_SWITCH_PROFILE") {
+                                if (SET_PROFILE == 1) {
+                                    localStorage.setItem("DEBUG_PROFILE", 2)
+                                    window.location.reload();
+                                } else if (SET_PROFILE == 2) {
+                                    localStorage.setItem("DEBUG_PROFILE", 1)
+                                    window.location.reload();
+                                }
+                            }
+
                             if (!lookupData1 || lookupData1 == " ") {
                                 lookupTextField1.value = "";
                                 isOneEmpty = true;
@@ -1132,7 +1160,7 @@
 
                                 if (lookupAlertCounter >= Settings.LookupWarningInterval) {
                                     lookupAlertCounter = 0;
-                                    lookupAlertSound.play();
+                                    toPingLookup = true;
                                 }
 
                             } else {
@@ -1447,6 +1475,18 @@
                 if (firstChecker !== arrivedTrips) {
                     arrivedTrips = firstChecker;
                     firstChecker = 0;
+                }
+
+                if (toPingNew) {
+                    newtripSound.play();
+                }
+
+                if (toPingNewApp) {
+                    newAppTripSound.play();
+                }
+
+                if (toPingLookup) {
+                    lookupAlertSound.play();
                 }
             }
 
@@ -2070,6 +2110,14 @@
 })();
 
 /*
+4.43
+[fixes]
+- fixed a probable performance issue with the new / newapp ping sounds as they overlapped and played multiple times on a loop
+
+[debug]
+- added a debug way to switch profiles with lookup
+
+
 4.42
 [tweaks]
 - changed refresh keybind AGAIN to Ctr + Alt + X
