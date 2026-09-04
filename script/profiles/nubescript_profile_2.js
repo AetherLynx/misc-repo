@@ -12,13 +12,13 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.43"
+    const SCRIPT_VERSION = "v4.45b"
 
     var SET_PROFILE = 2
 
     if (!localStorage.getItem("DEBUG_PROFILE")) {
         localStorage.setItem("DEBUG_PROFILE", SET_PROFILE);
-    } else if (localStorage.getItem("DEBUG_PROFILE")){
+    } else if (localStorage.getItem("DEBUG_PROFILE")) {
         SET_PROFILE = localStorage.getItem("DEBUG_PROFILE");
     }
 
@@ -115,6 +115,10 @@
             // v4.11 options
 
             WarningSoundsInterval: 60,          // merged counter for the arrived & accepted warnings in seconds
+
+            // v4.5 options
+
+            KeepWspChatboxContent: true,        // if to save what u were writing on a chatbox to prevent interrumptions (like receiving a new chat)
         }
     }
 
@@ -210,6 +214,10 @@
             // v4.11 options
 
             WarningSoundsInterval: 60,        // merged counter for the arrived & accepted warnings in seconds
+
+            // v4.5 options
+
+            KeepWspChatboxContent: true,        // if to save what u were writing on a chatbox to prevent interrumptions (like receiving a new chat)
         }
     }
 
@@ -244,6 +252,7 @@
     var csscolour = null;
     const wspContQuery = ".flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1"; //for IN THE CHAT
     const masterWspContQuery = ".chat-container"; //for OUT THE CHAT
+    const wspTextBoxQuery = ".p-inputtextarea.p-inputtext.p-component.p-inputtextarea-resizable.emoji-input.w-full.px-5.emoji-input.w-full.px-5"
     const wspChatgroupsQuery = ".flex.align-items-center.bg-white.p-3.gap-3.border-bottom-1.surface-border.cursor-pointer.mb-1"
     const wspChatHeaderQuery = ".flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1";
     const cancelBtQuery = "button.p-button.p-component.p-button-icon-only.p-button-rounded.p-button-sm.p-button-danger"
@@ -368,6 +377,10 @@
         "numberExample": "17",
     };
 
+    var data_Wsp_TextboxContent = {
+        "numberexample": "Lorem ipsum dolor amet",
+    }
+
     var changingDriverList = [
         "Jane Doe"
     ]
@@ -396,7 +409,7 @@
 
 
     if (!Settings.ShowConsoleLogs) {
-        console.log("-- disabling console logs --");
+        console.log("-- NUBESCRIPT: DISABLING CONSOLE LOGS --");
         console.log = function () { };
     }
 
@@ -444,7 +457,7 @@
 
                             if (targetOption) {
                                 targetOption.click(); // This triggers the framework's internal filter
-                                console.log("Internal filter forced to 100");
+                                console.log("NUBESCRIPT: FORCED DASHBOARD FILTER TO 100");
                             } else {
                                 // If 100 isn't found, close it so it doesn't stay open
                                 trigger.click();
@@ -464,17 +477,12 @@
             var wspNumber = wspCont.querySelector(`a[href^="tel:"]`);
             var highlightedSomething = false;
             wspNumber = formatPhoneNum(wspNumber.getAttribute('href'), true);
-            console.log("WHATSAPP NUMBER: " + wspNumber)
-            console.log("WHATSAPP QUERY COMMAND")
-            console.log(document.querySelectorAll(`a[href*="${wspNumber}"]`))
 
             document.querySelectorAll(`a[href*="${wspNumber}"]`).forEach(element => {
                 var row = element.closest('tr[role="row"]');
                 if (!row) return;
-                console.log("WHATSAPP HIGHLIGHT: Successfully got row element")
 
                 var tripData = getDataFromTrip(row);
-                console.log("WHATSAPP HIGHLIGHT: Successfully got data from trip")
 
                 row.classList.add("whatsapp-highlight");
                 highlightedSomething = true;
@@ -502,12 +510,14 @@
         "431435555",
         "13158697089",
         "16968870000",
+        "13158697099",
     ]
 
     const driverBlacklist = [
         "New Driver App",
         "Test Driver",
         "Paquita Ramirez",
+        "Chris Pasajero",
     ]
 
     var toPingNew = false;
@@ -717,8 +727,6 @@
                     var dataTimeAccepted = null;
                     var dataTimeArrived = null;
 
-                    //console.log("["+driversName+"] -> ["+selectedDriver+"]"); TESTING
-
                     if (numBlacklist.includes(tripPhonenum)) {
                         return; // TEST PASSENGER SKIP CHECK
                     }
@@ -849,7 +857,6 @@
                             const chatGroups = trip_wspCont.querySelectorAll(wspChatgroupsQuery);
 
                             if (chatGroups.length > 0) {
-                                console.log("found chat groups! checking")
                                 chatGroups.forEach(element => {
                                     var chatNumber = element.querySelector(`a[href^="tel:"]`);
                                     chatNumber = formatPhoneNum(chatNumber.getAttribute('href'), true);
@@ -895,17 +902,11 @@
                                         selectElement = element.querySelector("select");
 
                                         if (chatNumber in whatsappTagsNumbers) {
-                                            console.log("Value found in array! Changing " + chatNumber + "'s to " + whatsappTagsNumbers[chatNumber] + ".")
                                             selectElement.value = whatsappTagsNumbers[chatNumber];
-                                        } else {
-                                            console.log(chatNumber + " NOT FOUND IN OBJECT, defaulting. Current object: ");
-                                            console.log(whatsappTagsNumbers);
                                         }
 
                                         selectElement.addEventListener("change", function () {
                                             whatsappTagsNumbers[chatNumber] = this.value;
-                                            console.log("Change in array! Inserting " + this.value + " to " + chatNumber)
-                                            console.log(whatsappTagsNumbers);
                                         })
 
                                         selectElement.addEventListener("click", function (e) {
@@ -1172,8 +1173,46 @@
                             }
                         }
                     }
+
+
                 }
             })
+
+
+
+            /* OUT THE LOOP -- -- OUT THE LOOP -- -- OUT THE LOOP -- -- OUT THE LOOP   */
+
+
+
+            if (Settings.KeepWspChatboxContent) {
+                var global_wspTextbox = document.querySelector(wspTextBoxQuery);
+
+                if (global_wspTextbox && !global_wspTextbox.getAttribute("haslistener")) {
+                    global_wspTextbox.setAttribute("haslistener", "true")
+
+                    var wspHeader = document.querySelector(wspChatHeaderQuery);
+
+                    var wspNumber = wspHeader.querySelector("a")
+                    wspNumber = formatPhoneNum(wspNumber.getAttribute("href"), true);
+
+                    if (wspNumber in data_Wsp_TextboxContent) {
+                        if (data_Wsp_TextboxContent[wspNumber] !== "") {
+                            global_wspTextbox.value = data_Wsp_TextboxContent[wspNumber];
+
+                            var temp_previousStyle = global_wspTextbox.style.border;
+                            global_wspTextbox.style.border = "1px solid white";
+
+                            setTimeout(() => {
+                                global_wspTextbox.style.border = temp_previousStyle
+                            }, 100);
+                        }
+                    }
+
+                    global_wspTextbox.addEventListener("input", (event) => {
+                        data_Wsp_TextboxContent[wspNumber] = global_wspTextbox.value;
+                    })
+                }
+            }
 
             if (!document.getElementById("shortcutRefresh")) {
                 var list = document.querySelectorAll(".p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh)");
@@ -1235,11 +1274,6 @@
                     const actBookSpan = document.querySelector(actBookSpanQuery);
                     const parentCont = actBookSpan.parentElement;
 
-                    if (!activeBookButton) {
-                        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! couldnt find active book button! aborting")
-                        return;
-                    }
-
                     if (!document.getElementById("statsNEW")) {
                         const stats_NewTrips = document.createElement("span");
                         stats_NewTrips.id = "statsNEW";
@@ -1269,7 +1303,6 @@
                         })
 
                         parentCont.append(stats_NewTrips);
-                        console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEW")
                     }
 
                     if (!document.getElementById("statsNEWAPP")) {
@@ -1301,7 +1334,6 @@
                         })
 
                         parentCont.append(stats_NewAppTrips);
-                        console.log("¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ appended statsNEWAPP")
                     }
 
                     if (!document.getElementById("statsACCEPTED")) {
@@ -1496,10 +1528,8 @@
 
             if (Settings.CheckForAppTripsDefault == false) {
                 const removeApps = document.querySelectorAll(".alt-owntrip");
-                console.log(removeApps);
 
                 removeApps.forEach(element => {
-                    console.log("REMOVING CLASS APP")
                     element.classList.remove("alt-owntrip");
                 });
             }
@@ -1508,7 +1538,6 @@
                 const removeHighlights = document.querySelectorAll(".filterHide");
 
                 removeHighlights.forEach(element => {
-                    console.log("REMOVING FILTER HIDE")
                     element.classList.remove("filterHide");
                 });
             }
@@ -1620,6 +1649,13 @@
                 " width="20px" height="20px">
                 Active Booking Stats
             </span>
+
+            <span class="ns-row" id="settings_OPT11">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNjQwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNjAgOTZjLTM1LjMgMC02NCAyOC43LTY0IDY0djMyMGMwIDM1LjMgMjguNyA2NCA2NCA2NGgzMjBjMzUuMyAwIDY0LTI4LjcgNjQtNjRWMjM3LjNjMC0xNy02LjctMzMuMy0xOC43LTQ1LjNMNDQ4IDExNC43Yy0xMi0xMi0yOC4zLTE4LjctNDUuMy0xOC43em0zMiA5NmMwLTE3LjcgMTQuMy0zMiAzMi0zMmgxNjBjMTcuNyAwIDMyIDE0LjMgMzIgMzJ2NjRjMCAxNy43LTE0LjMgMzItMzIgMzJIMjI0Yy0xNy43IDAtMzItMTQuMy0zMi0zMnptMTI4IDE2MGMzNS4zIDAgNjQgMjguNyA2NCA2NHMtMjguNyA2NC02NCA2NHMtNjQtMjguNy02NC02NHMyOC43LTY0IDY0LTY0Ii8+PC9zdmc+
+                " width="20px" height="20px">
+                Remember WhatsApp Textbox Text
+            </span>
         </div>
         <div class="ns-wrapcolumn" style="width: 100%">
             <span>Lookup Info</span>
@@ -1647,6 +1683,19 @@
         document.getElementById("settings_LOOKUP1").addEventListener("change", () => {
             lookupCooldown = true;
         });
+
+        var setting_OPT11 = document.getElementById("settings_OPT11");
+        setting_OPT11.style.borderColor = Settings.KeepWspChatboxContent == true ? "green" : "red";
+
+        setting_OPT11.addEventListener("click", () => {
+            if (Settings.KeepWspChatboxContent) {
+                Settings.KeepWspChatboxContent = false;
+                setting_OPT11.style.borderColor = "red";
+            } else {
+                Settings.KeepWspChatboxContent = true;
+                setting_OPT11.style.borderColor = "green";
+            }
+        })
 
         var setting_OPT10 = document.getElementById("settings_OPT10");
         setting_OPT10.style.borderColor = Settings.SoundPlayWhenNewApp == true ? "green" : "red";
@@ -1775,14 +1824,14 @@
 
         setting_OPT4.addEventListener("click", () => {
             if (Settings.ShowConsoleLogs) {
-                console.log("!! SETTINGS: DISABLING CONSOLE LOGS !!");
+                console.log("NUBESCRIPT: DISABLING CONSOLE LOGS (userToggled)");
                 console.log = function () { };
 
                 Settings.ShowConsoleLogs = false;
                 setting_OPT4.style.borderColor = "red";
             } else {
                 console.log = originalConsoleLog;
-                console.log("!! SETTINGS: RE-ENABLING CONSOLE LOGS !!")
+                console.log("NUBESCRIPT: ENABLING CONSOLE LOGS (userToggled)")
 
                 Settings.ShowConsoleLogs = true;
                 setting_OPT4.style.borderColor = "green";
@@ -1865,7 +1914,7 @@
                 highlightText(anchor);
 
                 navigator.clipboard.writeText(phoneNumber).then(() => {
-                    console.log('copied to clipboard: ' + phoneNumber);
+                    console.log('NUBESCRIPT: COPIED PHONE NUMBER [' + phoneNumber + ']');
                 }).catch(err => {
                     console.error('Failed to copy: ', err);
                 });
@@ -2110,6 +2159,11 @@
 })();
 
 /*
+4.45b
+[features]
+- textbox memory: whenever you write text on a whatsapp chat if it gets closed the textbox will recover its previous text
+
+
 4.43
 [fixes]
 - fixed a probable performance issue with the new / newapp ping sounds as they overlapped and played multiple times on a loop
